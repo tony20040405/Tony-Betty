@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>登入我們的專屬空間</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+<script src="site-config.js"></script>
+<script src="firebase-init.js"></script>
+<style>
+body{justify-content:center}
+.box{background:var(--card);padding:30px 24px;border-radius:20px;box-shadow:0 10px 30px rgba(232,85,122,.2);width:100%;max-width:360px;border:2px solid var(--line)}
+.box h1{font-size:1.5rem;margin-top:0;color:var(--accent)}
+input{margin:8px 0}
+#actionBtn{width:100%;padding:14px;margin-top:14px;font-size:1.1rem}
+.toggle{margin-top:20px;color:var(--accent);cursor:pointer;font-size:.95rem;font-weight:bold;text-decoration:underline}
+#err{color:var(--accent);font-size:.9rem;margin:14px 0 0;font-weight:bold;min-height:1.2em}
+</style>
+</head>
+<body>
+<div class="box">
+  <h1 id="title">登入我們的世界 💖</h1>
+  <p class="sub" style="margin-bottom:12px">登入後資料會自動備份,換手機也不怕不見!</p>
+  <input type="email" id="email" placeholder="信箱" autocomplete="email">
+  <input type="password" id="pw" placeholder="密碼(至少 6 個字)" autocomplete="current-password">
+  <button id="actionBtn">登入進入</button>
+  <div class="toggle" id="toggleMode">還沒有帳號?點我註冊</div>
+  <p id="err"></p>
+</div>
+<script>
+let isLogin = true;
+const $ = id => document.getElementById(id);
+const ERR = {
+  'auth/invalid-email': '信箱格式不正確', 'auth/user-not-found': '找不到這個帳號', 'auth/wrong-password': '密碼錯誤',
+  'auth/invalid-credential': '信箱或密碼錯誤', 'auth/email-already-in-use': '這個信箱已經註冊過了',
+  'auth/weak-password': '密碼至少要 6 個字', 'auth/too-many-requests': '嘗試太多次,請稍後再試', 'auth/network-request-failed': '網路連線失敗'
+};
+$('toggleMode').onclick = () => {
+  isLogin = !isLogin;
+  $('title').textContent = isLogin ? '登入我們的世界 💖' : '註冊專屬帳號 💖';
+  $('actionBtn').textContent = isLogin ? '登入進入' : '註冊並登入';
+  $('toggleMode').textContent = isLogin ? '還沒有帳號?點我註冊' : '已有帳號?點我登入';
+  $('err').textContent = '';
+};
+async function doAction() {
+  const email = $('email').value.trim(), pw = $('pw').value;
+  if (!email || !pw) { $('err').textContent = '請輸入信箱與密碼哦!'; return; }
+  $('err').textContent = '處理中...'; $('actionBtn').disabled = true;
+  try {
+    await (isLogin ? auth.signInWithEmailAndPassword(email, pw) : auth.createUserWithEmailAndPassword(email, pw));
+    location.href = 'index.html';
+  } catch (e) {
+    $('err').textContent = (isLogin ? '登入失敗:' : '註冊失敗:') + (ERR[e.code] || e.message);
+    $('actionBtn').disabled = false;
+  }
+}
+$('actionBtn').onclick = doAction;
+$('pw').addEventListener('keydown', e => { if (e.key === 'Enter') doAction(); });
+auth.onAuthStateChanged(user => { if (user) location.href = 'index.html'; });
+</script>
+</body>
+</html>

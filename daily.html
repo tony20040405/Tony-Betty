@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>每日問答 💬</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+<script src="site-config.js"></script>
+<script src="firebase-init.js"></script>
+<style>
+.q-title{font-size:1.2rem;color:var(--accent);font-weight:bold;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.q-title span{font-size:1.5rem}
+.ans-box{margin-bottom:16px}
+.ans-box label{display:block;font-size:.95rem;font-weight:bold;color:var(--muted);margin-bottom:6px}
+textarea{height:90px;resize:none}
+#save-btn{width:100%}
+#state{margin-top:10px;font-size:.85rem;color:var(--muted);text-align:center;min-height:1.2em}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html">刮刮樂</a>
+  <a href="park.html">遊樂園</a>
+  <a href="timeline.html">我們的故事</a>
+  <a href="daily.html" class="active">每日問答</a>
+  <a href="capsule.html">時光膠囊</a>
+  <a href="admin.html" style="display:none">後台管理⚙️</a>
+  <a href="#" class="logout" onclick="auth.signOut(); return false;">登出🚪</a>
+</nav>
+<h1>💬 每日專屬問答</h1>
+<p class="sub">像 SumOne 一樣,每天都有一個專屬問題哦!</p>
+<div class="panel">
+  <div class="q-title"><span>📝</span> <div id="question">今天的問題是...</div></div>
+  <div class="ans-box"><label id="lb-boy">👦 定宇本寶的回答:</label><textarea id="ans-boy" placeholder="定宇請在此輸入..."></textarea></div>
+  <div class="ans-box"><label id="lb-girl">👧 寶鼻小寶的回答:</label><textarea id="ans-girl" placeholder="寶鼻請在此輸入..."></textarea></div>
+  <button id="save-btn">儲存今日回憶 💖</button>
+  <div id="state"></div>
+</div>
+<script>
+(async () => {
+  const user = await authReady; if (!user) return;
+  const site = await loadSiteConfig();
+  const $ = id => document.getElementById(id);
+  const qs = (site.dailyQuestions && site.dailyQuestions.length) ? site.dailyQuestions : DEFAULT_CONFIG.dailyQuestions;
+  if (site.names) { $('lb-boy').textContent = '👦 ' + site.names.boy + '的回答:'; $('lb-girl').textContent = '👧 ' + site.names.girl + '的回答:'; }
+
+  const t = new Date();
+  const dayNum = Math.floor(Date.UTC(t.getFullYear(), t.getMonth(), t.getDate()) / 864e5);   // 用本地日期,不受 UTC 影響
+  $('question').textContent = 'Q: ' + qs[dayNum % qs.length];
+  const dateStr = t.toLocaleDateString('sv');                                                  // YYYY-MM-DD(本地時間)
+  const docRef = db.collection('daily').doc(dateStr);
+
+  docRef.onSnapshot(doc => {
+    if (!doc.exists) return;
+    const d = doc.data();
+    if (document.activeElement !== $('ans-boy'))  $('ans-boy').value  = d.boy  || '';
+    if (document.activeElement !== $('ans-girl')) $('ans-girl').value = d.girl || '';
+  }, e => { $('state').textContent = '⚠️ 讀取失敗:' + e.message; });
+
+  let timer;
+  const doSave = () => docRef.set({ boy: $('ans-boy').value, girl: $('ans-girl').value }, { merge: true })
+    .then(() => { $('state').textContent = '☁️ 已同步到雲端 ' + new Date().toLocaleTimeString('zh-TW'); })
+    .catch(e => { $('state').textContent = '⚠️ 儲存失敗:' + e.message; });
+  const autoSave = () => { $('state').textContent = '儲存中...'; clearTimeout(timer); timer = setTimeout(doSave, 800); };
+  $('ans-boy').addEventListener('input', autoSave);
+  $('ans-girl').addEventListener('input', autoSave);
+  $('save-btn').onclick = () => { clearTimeout(timer); doSave(); };
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+:root{--b1:#ffe3ec;--b2:#ffd0e4;--b3:#e6dcff;--fg:#4a2230;--card:#fff;--muted:#9b6b7d;--accent:#e8557a;--line:#f5cbd8}
+@media (prefers-color-scheme:dark){:root{--b1:#1d1217;--b2:#2a1424;--b3:#1c1631;--fg:#fbe4ea;--card:#2b1b22;--muted:#b88c9a;--accent:#ff7a9c;--line:#4a2f3a}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--fg);font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;background:linear-gradient(135deg,var(--b1),var(--b2),var(--b3));background-size:300% 300%;animation:bg 14s ease infinite;display:flex;flex-direction:column;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 24px) 16px calc(env(safe-area-inset-bottom,0px) + 60px);text-align:center}
+@keyframes bg{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
+nav{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:24px;z-index:10;position:relative}
+nav a{background:var(--card);color:var(--accent);text-decoration:none;padding:8px 16px;border-radius:999px;font-size:.9rem;font-weight:bold;border:1.5px solid var(--accent);transition:.2s}
+nav a.active{background:var(--accent);color:#fff}
+h1{font-size:1.75rem;margin:4px 0}
+.sub{color:var(--muted);font-size:.92rem;margin:0 0 20px}
+.panel{width:min(100%,480px);background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;margin-bottom:20px;box-shadow:0 8px 24px rgba(232,85,122,.15);text-align:left}
+.panel h2{margin:0 0 12px;font-size:1.25rem;color:var(--accent)}
+.hint{color:var(--muted);font-size:.85rem;margin:4px 0 8px}
+button{font-family:inherit;background:var(--accent);color:#fff;border:0;border-radius:999px;padding:12px 24px;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(232,85,122,.3);transition:transform .15s,opacity .2s}
+button:active{transform:scale(.97)}
+button:disabled{opacity:.4;cursor:default}
+button.g{background:var(--card);color:var(--accent);border:1.5px solid var(--accent);box-shadow:none;padding:10px 18px;font-size:.92rem}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+textarea,input{width:100%;font-family:inherit;font-size:1rem;color:var(--fg);background:var(--b1);border:2px solid var(--line);border-radius:12px;padding:12px}
+textarea:focus,input:focus{outline:none;border-color:var(--accent)}

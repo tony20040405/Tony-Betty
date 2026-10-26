@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>定宇的時光膠囊 💌</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+<script src="site-config.js"></script>
+<script src="firebase-init.js"></script>
+<style>
+.panel{text-align:center}
+.progress-container{width:100%;background:var(--line);border-radius:999px;height:18px;overflow:hidden;margin:12px 0}
+.progress-bar{height:100%;background:var(--accent);width:0;transition:width 1s ease-in-out}
+.countdown-text{font-size:1.1rem;font-weight:bold}
+.daily-message{font-size:1.15rem;line-height:1.6;padding:16px;background:rgba(232,85,122,.08);border-radius:12px;border-left:4px solid var(--accent);text-align:left}
+.open-when-grid{display:flex;flex-direction:column;gap:10px}
+.ow-btn{background:var(--card);color:var(--fg);border:2px solid var(--line);padding:14px;border-radius:12px;font-size:1rem;font-weight:bold;cursor:pointer;transition:.2s;text-align:left;display:flex;align-items:center;gap:12px;box-shadow:none}
+.ow-btn:hover,.ow-btn:active{border-color:var(--accent);transform:scale(.98)}
+.ow-btn .icon{font-size:1.6rem}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;opacity:0;pointer-events:none;transition:.3s}
+#modal.show{opacity:1;pointer-events:auto}
+.modal-content{background:var(--card);border-radius:20px;padding:24px;max-width:400px;width:100%;max-height:85vh;overflow:auto;border:3px solid var(--accent);text-align:left}
+.modal-content h3{margin-top:0;color:var(--accent);font-size:1.3rem}
+.modal-content p{line-height:1.7;white-space:pre-wrap;font-size:1.05rem}
+.close-btn{display:block;width:100%;margin-top:16px}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html">刮刮樂</a>
+  <a href="park.html">遊樂園</a>
+  <a href="timeline.html">我們的故事</a>
+  <a href="daily.html">每日問答</a>
+  <a href="capsule.html" class="active">時光膠囊</a>
+  <a href="admin.html" style="display:none">後台管理⚙️</a>
+  <a href="#" class="logout" onclick="auth.signOut(); return false;">登出🚪</a>
+</nav>
+<h1>🕰️ 定宇的時光膠囊</h1>
+<p class="sub" id="top-sub"></p>
+
+<section class="panel">
+  <h2>🎖️ 本寶回歸倒數</h2>
+  <div class="countdown-text" id="count-text"></div>
+  <div class="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
+  <p class="sub" style="margin:8px 0 0" id="progress-text"></p>
+</section>
+
+<section class="panel">
+  <h2>💌 今日專屬留言</h2>
+  <div class="daily-message" id="daily-msg">讀取中...</div>
+</section>
+
+<section class="panel">
+  <h2>🚑 寶鼻專屬急救包 (Open When...)</h2>
+  <p class="sub">遇到這些情況時請點開:</p>
+  <div class="open-when-grid" id="ow-grid"></div>
+</section>
+
+<div id="modal">
+  <div class="modal-content">
+    <h3 id="modal-title"></h3>
+    <p id="modal-body"></p>
+    <button class="close-btn" onclick="document.getElementById('modal').classList.remove('show')">收下本寶的抱抱 🤗</button>
+  </div>
+</div>
+<script>
+(async () => {
+  const user = await authReady; if (!user) return;
+  const site = await loadSiteConfig();
+  const $ = id => document.getElementById(id);
+  const parse = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };   // 本地時間
+  const startDate = parse(site.dates.armyStart), endDate = parse(site.dates.armyEnd);
+  const now = new Date(), DAY = 864e5;
+  const totalDays = Math.max(1, Math.round((endDate - startDate) / DAY));
+
+  let daysLeft, pct;
+  if (now < startDate)      { daysLeft = totalDays; pct = 0;   $('top-sub').textContent = '本寶就要出發了,心會一直陪著寶鼻 💖'; }
+  else if (now >= endDate)  { daysLeft = 0;         pct = 100; $('top-sub').textContent = '定宇已經平安退伍啦!這些留言留給想我的時候 💖'; }
+  else                      { daysLeft = Math.ceil((endDate - now) / DAY); pct = (totalDays - daysLeft) / totalDays * 100;
+                              $('top-sub').textContent = '即使本寶去當兵了,我的心也一直陪在寶鼻身邊 💖'; }
+
+  if (daysLeft > 0) {
+    $('count-text').innerHTML = '距離定宇退伍還有 <span style="color:var(--accent);font-size:1.5rem">' + daysLeft + '</span> 天!';
+    $('progress-text').textContent = '已經熬過 ' + pct.toFixed(1) + '% 囉,寶鼻再等我一下!';
+  } else if (now >= endDate) {
+    $('count-text').textContent = '🎉 定宇退伍啦!';
+    $('progress-text').textContent = '100% 完成,謝謝寶鼻一路等我!';
+  } else {
+    $('count-text').textContent = '距離入伍還有 ' + Math.ceil((startDate - now) / DAY) + ' 天';
+    $('progress-text').textContent = '還沒開始倒數,先好好相處吧!';
+  }
+  setTimeout(() => { $('progress-bar').style.width = pct + '%'; }, 300);
+
+  const msgs = (site.capsule && site.capsule.dailyMessages) || [];
+  const dayNum = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / DAY);
+  $('daily-msg').textContent = msgs.length ? msgs[dayNum % msgs.length] : '今天也很愛妳 💖';
+
+  ((site.capsule && site.capsule.openWhen) || []).forEach(item => {
+    const btn = document.createElement('button'); btn.className = 'ow-btn';
+    const ic = document.createElement('span'); ic.className = 'icon'; ic.textContent = item.icon || '💌';
+    const tt = document.createElement('span'); tt.textContent = item.title || '';
+    btn.append(ic, tt);
+    btn.onclick = () => { $('modal-title').textContent = item.title || ''; $('modal-body').textContent = item.content || ''; $('modal').classList.add('show'); };
+    $('ow-grid').appendChild(btn);
+  });
+})();
+</script>
+</body>
+</html>

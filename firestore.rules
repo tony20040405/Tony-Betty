@@ -1,0 +1,17 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ⚠️ 把下面兩個信箱換成你們自己的(寶鼻的信箱要填對,且全部小寫)
+    function me()     { return request.auth != null && request.auth.token.email == 'tony0930508440@gmail.com'; }
+    function couple() { return request.auth != null &&
+                        request.auth.token.email in ['tony0930508440@gmail.com', '寶鼻的信箱@gmail.com']; }
+
+    // 刮刮樂 / 遊樂園進度:每個人只能讀寫自己的
+    match /userData/{uid}   { allow read, write: if couple() && request.auth.uid == uid; }
+    // 每日問答:你們兩個都能讀寫
+    match /daily/{day}      { allow read, write: if couple(); }
+    // 網站內容設定:你們能讀,只有定宇能寫
+    match /coupleData/{doc} { allow read: if couple(); allow write: if me(); }
+  }
+}

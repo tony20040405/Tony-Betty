@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>後台管理 ⚙️</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+<script src="site-config.js"></script>
+<script src="firebase-init.js"></script>
+<style>
+.panel{width:min(100%,720px)}
+#config-json{height:600px;font:13px/1.4 monospace;white-space:pre;margin-top:8px}
+#status{margin-top:12px;font-weight:bold;color:var(--accent);min-height:1.2em}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html">刮刮樂</a>
+  <a href="park.html">遊樂園</a>
+  <a href="timeline.html">我們的故事</a>
+  <a href="daily.html">每日問答</a>
+  <a href="capsule.html">時光膠囊</a>
+  <a href="admin.html" class="active" style="display:none">後台管理⚙️</a>
+  <a href="#" class="logout" onclick="auth.signOut(); return false;">登出🚪</a>
+</nav>
+<h1>⚙️ 後台控制中心</h1>
+<p class="sub">修改全站內容(我們的故事、每日問答、時光膠囊、刮刮樂獎品…),按「儲存」後所有頁面都會更新</p>
+<div class="panel">
+  <h2>📝 網站全局設定 (JSON)</h2>
+  <p class="hint" style="color:var(--accent);font-weight:bold">⚠️ 請只修改【引號 " " 】裡面的字,不要刪到引號、逗號或括號。格式錯誤時不會儲存。</p>
+  <textarea id="config-json" spellcheck="false" placeholder="讀取中..."></textarea>
+  <div class="btns" style="margin-top:16px">
+    <button id="btn-save">儲存設定到雲端 ☁️</button>
+    <button class="g" id="btn-reload">重新載入雲端版本</button>
+    <button class="g" id="btn-reset">還原為預設值</button>
+    <button class="g" id="btn-clear">🗑️ 重設我的抽獎紀錄</button>
+  </div>
+  <p id="status"></p>
+</div>
+<script>
+(async () => {
+  const user = await authReady;
+  if (!user || !isAdminUser(user)) return;               // 非管理員:firebase-init.js 會把人導走
+  const $ = id => document.getElementById(id);
+  const say = m => { $('status').textContent = m; };
+  const show = cfg => { $('config-json').value = JSON.stringify(cfg, null, 2); };
+
+  async function load() { say('讀取中...'); show(await loadSiteConfig()); say(''); }
+  await load();
+
+  $('btn-reload').onclick = load;
+  $('btn-reset').onclick = () => {
+    if (confirm('確定要把內容還原成預設值嗎?(按「儲存」之後才會真的上傳)')) { show(DEFAULT_CONFIG); say('已還原為預設值,請按儲存上傳!'); }
+  };
+  $('btn-save').onclick = async () => {
+    let data;
+    try { data = JSON.parse($('config-json').value); }
+    catch (e) { say('❌ JSON 格式有錯誤,請檢查是否少了引號或逗號:' + e.message); return; }
+    if (!data.scratchcard || !Array.isArray(data.scratchcard.prizes) || !data.scratchcard.prizes.length) { say('❌ scratchcard.prizes 不能是空的'); return; }
+    if (!data.dates || !data.dates.armyStart || !data.dates.armyEnd) { say('❌ dates 裡需要 armyStart / armyEnd'); return; }
+    say('儲存中...');
+    try {
+      await db.collection('coupleData').doc('config').set(data);
+      say('✅ 儲存成功!網站內容已更新(其他頁面重新整理即可看到)');
+    } catch (e) { say('儲存失敗:' + e.message); }
+  };
+  $('btn-clear').onclick = async () => {
+    if (!confirm('確定要清除【目前登入帳號】的刮刮樂與遊樂園進度嗎?\n(所有裝置都會被清空,無法復原!)')) return;
+    say('正在清除雲端紀錄...');
+    try {
+      const at = Date.now();
+      await db.collection('userData').doc(user.uid).set({ sc2: '{}', updatedAt: at }, { merge: true });
+      localStorage.setItem('sc2', '{}'); localStorage.setItem('sc2At', String(at));
+      alert('紀錄已清除!即將回到首頁。'); location.href = 'index.html';
+    } catch (e) { say('清除失敗:' + e.message); }
+  };
+})();
+</script>
+</body>
+</html>

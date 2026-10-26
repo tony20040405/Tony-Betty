@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>我們的故事 📖</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+<script src="site-config.js"></script>
+<script src="firebase-init.js"></script>
+<style>
+.timeline{position:relative;max-width:600px;width:100%;margin:0 auto;padding:20px 0;text-align:left}
+.timeline::after{content:'';position:absolute;width:4px;background:var(--accent);top:0;bottom:0;left:20px;border-radius:2px}
+.item{padding:10px 0 10px 50px;position:relative}
+.item::after{content:'❤️';position:absolute;width:24px;height:24px;left:10px;top:22px;background:var(--card);border:3px solid var(--accent);border-radius:50%;z-index:1;display:flex;align-items:center;justify-content:center;font-size:10px}
+.content{padding:16px;background:var(--card);border-radius:12px;box-shadow:0 6px 16px rgba(232,85,122,.2);border:2px solid var(--line)}
+.content h2{margin:0 0 8px;font-size:1.2rem;color:var(--accent)}
+.content p{margin:0;font-size:.95rem;line-height:1.5;white-space:pre-wrap}
+.date{font-weight:bold;color:var(--muted);font-size:.85rem;margin-bottom:4px;display:block}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html">刮刮樂</a>
+  <a href="park.html">遊樂園</a>
+  <a href="timeline.html" class="active">我們的故事</a>
+  <a href="daily.html">每日問答</a>
+  <a href="capsule.html">時光膠囊</a>
+  <a href="admin.html" style="display:none">後台管理⚙️</a>
+  <a href="#" class="logout" onclick="auth.signOut(); return false;">登出🚪</a>
+</nav>
+<h1>📖 我們的故事</h1>
+<p class="sub">紀錄每個充滿愛與歡笑的日子</p>
+<div class="timeline" id="tl">讀取中...</div>
+<script>
+(async () => {
+  const user = await authReady; if (!user) return;
+  const site = await loadSiteConfig();
+  const tl = document.getElementById('tl'); tl.textContent = '';
+  (site.timeline || []).forEach(it => {
+    const row = document.createElement('div'); row.className = 'item';
+    const box = document.createElement('div'); box.className = 'content';
+    const d = document.createElement('span'); d.className = 'date'; d.textContent = it.date || '';
+    const h = document.createElement('h2'); h.textContent = it.title || '';
+    const p = document.createElement('p'); p.textContent = it.desc || '';
+    box.append(d, h, p); row.appendChild(box); tl.appendChild(row);
+  });
+})();
+</script>
+</body>
+</html>
