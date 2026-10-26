@@ -202,7 +202,10 @@ if(typeof auth !== 'undefined') {
   
   <div class="btns" style="margin-top:16px; justify-content: flex-start;">
     <button onclick="saveConfig()">儲存設定到雲端 ☁️</button>
+    
     <button class="g" onclick="resetConfig()">還原為預設值</button>
+    <button class="g" style="color:#e8557a; border-color:#e8557a;" onclick="clearRecords()">🗑️ 重設我的抽獎紀錄</button>
+
   </div>
   <p id="status" style="margin-top:12px; font-weight:bold; color:var(--accent);"></p>
 </div>
@@ -336,12 +339,34 @@ function saveConfig() {
   }
 }
 
+
 function resetConfig() {
   if(confirm("確定要把所有設定還原成最初的預設值嗎？(未按儲存前不會上傳雲端)")) {
     document.getElementById("config-json").value = JSON.stringify(DEFAULT_CONFIG, null, 2);
     document.getElementById("status").innerText = "已還原為預設值，請按儲存上傳！";
   }
 }
+
+function clearRecords() {
+  if(confirm("確定要清除【目前登入帳號】的所有刮刮樂與遊樂園進度嗎？\n(注意：此動作無法復原！)")) {
+    document.getElementById("status").innerText = "正在清除雲端紀錄...";
+    localStorage.removeItem("sc2"); // 清除本地端
+    if(typeof auth !== 'undefined' && auth.currentUser) {
+      // 覆寫雲端資料
+      db.collection("userData").doc(auth.currentUser.uid).set({ sc2: null }, { merge: true })
+      .then(() => {
+        alert("紀錄已成功清除！即將回到首頁。");
+        window.location.href = "index.html";
+      }).catch(e => {
+        document.getElementById("status").innerText = "清除失敗：" + e.message;
+      });
+    } else {
+        alert("紀錄已清除！即將回到首頁。");
+        window.location.href = "index.html";
+    }
+  }
+}
+
 </script>
 </body>
 </html>
