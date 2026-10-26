@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>定宇的時光膠囊 💌</title>
+<style>
+:root {
+  --b1: #ffe3ec; --b2: #ffd0e4; --b3: #e6dcff;
+  --fg: #4a2230; --card: #ffffff; --muted: #9b6b7d; --accent: #e8557a; --line: #f5cbd8;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --b1: #1d1217; --b2: #2a1424; --b3: #1c1631; --fg: #fbe4ea; --card: #2b1b22; --muted: #b88c9a; --accent: #ff7a9c; --line: #4a2f3a; }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100vh; color: var(--fg);
+  font-family: "PingFang TC", "Noto Sans TC", sans-serif;
+  background: linear-gradient(135deg, var(--b1), var(--b2), var(--b3));
+  background-size: 300% 300%; animation: bg 14s ease infinite;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 24px 16px 60px; text-align: center;
+}
+@keyframes bg { 0%, 100% { background-position: 0 50%; } 50% { background-position: 100% 50%; } }
+
+nav { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 24px; z-index: 10; position: relative; }
+nav a { background: var(--card); color: var(--accent); text-decoration: none; padding: 8px 16px; border-radius: 999px; font-size: 0.9rem; font-weight: bold; border: 1.5px solid var(--accent); transition: 0.2s; }
+nav a.active { background: var(--accent); color: #fff; }
+
+h1 { font-size: 1.75rem; margin: 4px 0; }
+.sub { color: var(--muted); font-size: 0.92rem; margin-bottom: 20px; }
+
+.panel {
+  width: min(100%, 480px); background: var(--card); border: 1px solid var(--line);
+  border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(232,85,122,0.15);
+}
+.panel h2 { margin: 0 0 12px; font-size: 1.25rem; color: var(--accent); }
+
+.progress-container {
+  width: 100%; background: var(--line); border-radius: 999px; height: 18px; overflow: hidden; margin: 12px 0;
+}
+.progress-bar {
+  height: 100%; background: var(--accent); width: 0%; transition: width 1s ease-in-out;
+}
+.countdown-text { font-size: 1.1rem; font-weight: bold; }
+
+.daily-message {
+  font-size: 1.15rem; line-height: 1.6; padding: 16px; background: rgba(232,85,122,0.08);
+  border-radius: 12px; border-left: 4px solid var(--accent); text-align: left;
+}
+
+.open-when-grid { display: flex; flex-direction: column; gap: 10px; }
+.ow-btn {
+  background: var(--card); color: var(--fg); border: 2px solid var(--line);
+  padding: 14px; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer;
+  transition: 0.2s; text-align: left; display: flex; align-items: center; gap: 12px;
+}
+.ow-btn:hover, .ow-btn:active { border-color: var(--accent); transform: scale(0.98); }
+.ow-btn .icon { font-size: 1.6rem; }
+
+#modal {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex;
+  align-items: center; justify-content: center; z-index: 50; padding: 20px; opacity: 0; pointer-events: none; transition: 0.3s;
+}
+#modal.show { opacity: 1; pointer-events: auto; }
+.modal-content {
+  background: var(--card); border-radius: 20px; padding: 24px; max-width: 400px; width: 100%;
+  border: 3px solid var(--accent); text-align: left; position: relative;
+}
+.modal-content h3 { margin-top: 0; color: var(--accent); font-size: 1.3rem; }
+.modal-content p { line-height: 1.7; white-space: pre-wrap; font-size: 1.05rem; }
+.close-btn {
+  display: block; width: 100%; background: var(--accent); color: #fff; border: none;
+  padding: 12px; border-radius: 999px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 16px;
+}
+</style>
+
+<!-- Firebase Setup -->
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBL0LoCSkThMXqYoW8nxlIsRt7A6YyObiI",
+    authDomain: "tonybetty-354a7.firebaseapp.com",
+    projectId: "tonybetty-354a7",
+    storageBucket: "tonybetty-354a7.firebasestorage.app",
+    messagingSenderId: "890099191965",
+    appId: "1:890099191965:web:55e9df1ea918889364c474"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  
+  if (!window.location.pathname.endsWith('login.html')) {
+    auth.onAuthStateChanged(user => {
+      if (!user) window.location.replace('login.html');
+    });
+  }
+</script>
+</head>
+<body>
+
+<nav>
+  <a href="index.html">刮刮樂</a>
+  <a href="park.html">遊樂園</a>
+  <a href="timeline.html">我們的故事</a>
+  <a href="daily.html">每日問答</a>
+  <a href="capsule.html" class="active">時光膠囊</a>
+  <a href="#" class="logout" onclick="auth.signOut(); return false;">登出🚪</a>
+</nav>
+
+
+
+<h1>🕰️ 定宇的時光膠囊</h1>
+<p class="sub">即使哥哥去當兵了，我的心也一直陪在寶鼻身邊 💖</p>
+
+<section class="panel">
+  <h2>🎖️ 哥哥回歸倒數</h2>
+  <div class="countdown-text">距離定宇退伍還有 <span id="days-left" style="color:var(--accent);font-size:1.5rem;">--</span> 天！</div>
+  <div class="progress-container">
+    <div class="progress-bar" id="progress-bar"></div>
+  </div>
+  <p class="sub" style="margin:8px 0 0;" id="progress-text">已經熬過 --% 囉，寶鼻再等我一下！</p>
+</section>
+
+<section class="panel">
+  <h2>💌 今日專屬留言</h2>
+  <div class="daily-message" id="daily-msg">
+    讀取中...
+  </div>
+</section>
+
+<section class="panel">
+  <h2>🚑 寶鼻專屬急救包 (Open When...)</h2>
+  <p class="sub">當哥哥不在身邊，遇到這些情況時請點開：</p>
+  <div class="open-when-grid" id="ow-grid">
+  </div>
+</section>
+
+<div id="modal">
+  <div class="modal-content">
+    <h3 id="modal-title"></h3>
+    <p id="modal-body"></p>
+    <button class="close-btn" onclick="document.getElementById('modal').classList.remove('show')">收下哥哥的抱抱 🤗</button>
+  </div>
+</div>
+
+<script>
+const startDate = new Date("2026-03-01T00:00:00"); 
+const endDate = new Date("2026-06-30T00:00:00"); 
+
+const dailyMessages = [
+  "寶鼻早安！今天有沒有乖乖吃早餐呀？就算我不在，也不可以餓肚子喔！愛妳嗯嘛 😘",
+  "今天的天氣如何呢？出門記得多帶件外套，不要讓我擔心妳感冒了。",
+  "寶寶～在軍中真的很難熬，但我只要想到妳可愛的臉，就覺得充滿動力了！",
+  "偷偷跟妳說，今天做操的時候我又在想妳了，好想趕快放假回去給妳一個大大的抱抱。",
+  "如果今天上課或工作覺得累，記得給自己買一杯好喝的飲料！哥哥請客（記在帳上等我回去結）！",
+  "我是不是很煩，就算當兵還是要每天跟妳說一次：我超級愛妳的！",
+  "寶寶今天也要加油喔！妳是最棒的，如果有誰惹妳生氣，等我回去幫妳揍他！",
+  "倒數的日子又少了一天，好想捏捏妳的臉頰，今晚要夢到我喔 💤"
+];
+
+const openWhenData = [
+  {
+    icon: "🩸", title: "當妳那個來、肚子痛痛的時候",
+    content: "寶鼻～肚子又痛痛了嗎？🥺\n\n對不起哥哥現在沒辦法親自幫妳敷熱水袋、也沒辦法過去給妳抱抱。妳一定要乖乖喝熱水，把暖暖包貼在肚子上，不要硬撐知道嗎？\n\n想著哥哥的手正在幫妳揉揉肚子... 痛痛飛走！辛苦寶鼻了，等我回去一定好好補償妳，愛妳喔！"
+  },
+  {
+    icon: "😡", title: "當妳遇到雷組員 / 心情很煩的時候",
+    content: "是哪個白目惹我們家小寶生氣了？！😡\n\n深呼吸～不要拿別人的愚蠢來懲罰自己可愛的臉蛋。妳已經做得很好了，真的是他們太雷！\n\n妳可以盡情在心裡罵他們（或是去我們的 LINE 留言罵，我放假一定一條一條看）。不管怎樣，哥哥永遠站在妳這邊，妳是最棒的！消消氣，去吃點好吃的甜點吧！"
+  },
+  {
+    icon: "😢", title: "當妳覺得孤單、特別想我的時候",
+    content: "寶寶... 我其實也超級超級想妳的。🥺\n\n雖然現在沒辦法馬上回妳訊息，也沒辦法立刻飛奔到妳身邊，但請妳記得，我的心一直都在妳那裡，從來沒有離開過（畢竟我早就被妳偷走了呀）。\n\n不要哭哭，去抱抱我送妳的娃娃，或者看看我們以前的照片。時間過得很快的，等我放假回去，我要把這幾天欠的抱抱跟親親全部補齊！嗯嘛！"
+  },
+  {
+    icon: "💤", title: "當妳半夜睡不著的時候",
+    content: "小傻瓜，怎麼還不睡覺？又在滑 Threads 還是看短劇了嗎？😆\n\n乖乖放下手機，閉上眼睛。想想我們之後要去哪裡約會、要去吃什麼好吃的火鍋。或者想想哥哥穿軍服帥氣的樣子（？\n\n我在軍中也會在夢裡去找妳的。快點睡吧，晚安寶鼻，愛妳喔 💖"
+  }
+];
+
+const now = new Date();
+const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+let daysLeft = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+if (daysLeft < 0) daysLeft = 0;
+if (now < startDate) daysLeft = totalDays; 
+
+document.getElementById("days-left").innerText = daysLeft;
+let progressPercent = 100;
+if (daysLeft > 0 && totalDays > 0) {
+  progressPercent = ((totalDays - daysLeft) / totalDays) * 100;
+}
+if (now < startDate) progressPercent = 0;
+
+setTimeout(() => {
+  document.getElementById("progress-bar").style.width = progressPercent + "%";
+}, 300);
+document.getElementById("progress-text").innerText = `已經熬過 ${progressPercent.toFixed(1)}% 囉，寶鼻再等我一下！`;
+
+const daySeed = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
+const msgIndex = daySeed % dailyMessages.length;
+document.getElementById("daily-msg").innerText = dailyMessages[msgIndex];
+
+const owGrid = document.getElementById("ow-grid");
+openWhenData.forEach((item) => {
+  const btn = document.createElement("button");
+  btn.className = "ow-btn";
+  btn.innerHTML = `<span class="icon">${item.icon}</span> <span>${item.title}</span>`;
+  btn.onclick = () => {
+    document.getElementById("modal-title").innerText = item.title;
+    document.getElementById("modal-body").innerText = item.content;
+    document.getElementById("modal").classList.add("show");
+  };
+  owGrid.appendChild(btn);
+});
+</script>
+</body>
+</html>

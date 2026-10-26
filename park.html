@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>寶鼻專屬遊樂園 🎪</title>
+<style>
+:root{--b1:#ffe3ec;--b2:#ffd0e4;--b3:#e6dcff;--fg:#4a2230;--card:#fff;--muted:#9b6b7d;--accent:#e8557a;--line:#f5cbd8}
+@media (prefers-color-scheme:dark){:root{--b1:#1d1217;--b2:#2a1424;--b3:#1c1631;--fg:#fbe4ea;--card:#2b1b22;--muted:#b88c9a;--accent:#ff7a9c;--line:#4a2f3a}}
+html[data-theme=night]{--b1:#14122b;--b2:#1d1a42;--b3:#2a1b4d;--fg:#ece8ff;--card:#221f45;--muted:#a9a3d6;--accent:#9d8cff;--line:#3a3570}
+html[data-theme=peach]{--b1:#fff1e0;--b2:#ffd9b8;--b3:#ffc7c7;--fg:#4a2a1a;--card:#fff;--muted:#a8765a;--accent:#ff7a45;--line:#ffd6b5}
+html[data-theme=mint]{--b1:#e3fff3;--b2:#c9f5e3;--b3:#d5e8ff;--fg:#17382d;--card:#fff;--muted:#5f9b86;--accent:#1fb58a;--line:#bfe8d6}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--fg);font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;background:linear-gradient(135deg,var(--b1),var(--b2),var(--b3));background-size:300% 300%;animation:bg 14s ease infinite;display:flex;flex-direction:column;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 20px) 16px calc(env(safe-area-inset-bottom,0px) + 40px);text-align:center}
+@keyframes bg{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
+h1{font-size:1.6rem;margin:8px 0 4px}
+.sub{color:var(--muted);font-size:.9rem;margin:0 0 12px}
+.stars{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 16px;font-size:.9rem;margin-bottom:16px}
+.main{width:min(100%,460px)}
+.hub{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.gc{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:16px 8px;cursor:pointer;box-shadow:0 8px 20px rgba(232,85,122,.15);transition:transform .15s;position:relative;font-family:inherit;color:var(--fg)}
+.gc:active{transform:scale(.96)}
+.gc .e{font-size:2.4rem}
+.gc b{display:block;margin:4px 0 2px}
+.gc small{color:var(--muted)}
+.gc .ok{position:absolute;top:6px;right:8px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:0 8px 24px rgba(232,85,122,.18)}
+.info{color:var(--muted);margin:6px 0 10px}
+button.b{font-family:inherit;background:var(--accent);color:#fff;border:0;border-radius:999px;padding:11px 26px;font-size:1rem;font-weight:700;cursor:pointer;margin:6px 4px}
+button.g{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
+.mg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.cd{aspect-ratio:1;font-size:1.9rem;border-radius:14px;background:var(--accent);color:#fff;border:0;cursor:pointer}
+.cd.up{background:var(--card);color:var(--fg);border:2px solid var(--line)}
+.cd.ok{opacity:.45}
+.ar{position:relative;height:360px;overflow:hidden;border-radius:16px;background:var(--b1);touch-action:manipulation;margin-bottom:8px}
+.hz{position:absolute;top:-44px;font-size:2.3rem;animation:drop linear forwards;user-select:none;cursor:pointer}
+@keyframes drop{to{transform:translateY(410px)}}
+.rp{font-size:2.6rem;background:var(--card);border:2px solid var(--line);border-radius:18px;padding:8px 16px;margin:4px;cursor:pointer}
+.big{font-size:3rem;margin:6px 0}
+.res{min-height:3.2em;font-size:1.05rem;font-weight:700;color:var(--accent);margin:8px 0}
+.chip{display:inline-block;border:1.5px solid var(--accent);color:var(--accent);border-radius:999px;padding:5px 12px;margin:3px;cursor:pointer;font-size:.88rem}
+.chip.on{background:var(--accent);color:#fff}
+.ft{border:3px solid var(--accent);border-radius:18px;padding:18px;text-align:left}
+.ft h2{margin:0 0 6px;color:var(--accent);text-align:center;font-size:1.7rem}
+.fx{position:fixed;top:-30px;pointer-events:none;animation:fall 2.6s linear forwards;z-index:9}
+@keyframes fall{to{transform:translateY(112vh) rotate(420deg);opacity:.5}}
+#toast{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);left:50%;transform:translate(-50%,20px);background:var(--accent);color:#fff;padding:10px 18px;border-radius:999px;font-size:.9rem;opacity:0;transition:.4s;z-index:30;pointer-events:none;max-width:90vw}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+[hidden]{display:none!important}
+
+nav { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 24px; z-index: 10; position: relative; }
+nav a { background: var(--card); color: var(--accent); text-decoration: none; padding: 8px 16px; border-radius: 999px; font-size: 0.9rem; font-weight: bold; border: 1.5px solid var(--accent); transition: 0.2s; }
+nav a.active { background: var(--accent); color: #fff; }
+</style>
+
+<!-- Firebase Setup -->
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js">
+if(typeof auth !== 'undefined') {
+  auth.onAuthStateChanged(user => {
+    if(user) {
+      db.collection("coupleData").doc("scratchcard").get().then(doc => {
+        if (doc.exists && doc.data().sc2) {
+          localStorage.setItem("sc2", doc.data().sc2);
+          hub();
+        }
+      });
+    }
+  });
+}
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js">
+if(typeof auth !== 'undefined') {
+  auth.onAuthStateChanged(user => {
+    if(user) {
+      db.collection("coupleData").doc("scratchcard").get().then(doc => {
+        if (doc.exists && doc.data().sc2) {
+          localStorage.setItem("sc2", doc.data().sc2);
+          hub();
+        }
+      });
+    }
+  });
+}
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js">
+if(typeof auth !== 'undefined') {
+  auth.onAuthStateChanged(user => {
+    if(user) {
+      db.collection("coupleData").doc("scratchcard").get().then(doc => {
+        if (doc.exists && doc.data().sc2) {
+          localStorage.setItem("sc2", doc.data().sc2);
+          hub();
+        }
+      });
+    }
+  });
+}
+</script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBL0LoCSkThMXqYoW8nxlIsRt7A6YyObiI",
+    authDomain: "tonybetty-354a7.firebaseapp.com",
+    projectId: "tonybetty-354a7",
+    storageBucket: "tonybetty-354a7.firebasestorage.app",
+    messagingSenderId: "890099191965",
+    appId: "1:890099191965:web:55e9df1ea918889364c474"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  
+  if (!window.location.pathname.endsWith('login.html')) {
+    auth.onAuthStateChanged(user => {
+      if (!user) window.location.replace('login.html');
+    });
+  }
+
+if(typeof auth !== 'undefined') {
+  auth.onAuthStateChanged(user => {
+    if(user) {
+      db.collection("coupleData").doc("scratchcard").get().then(doc => {
+        if (doc.exists && doc.data().sc2) {
+          localStorage.setItem("sc2", doc.data().sc2);
+          hub();
+        }
+      });
+    }
+  });
+}
+</script>
+</head>
+<body>
+<nav>
+  <a href="index.html">刮刮樂</a>
+  <a href="park.html" class="active">遊樂園</a>
+  <a href="timeline.html">我們的故事</a>
+  <a href="daily.html">每日問答</a>
+  <a href="capsule.html">時光膠囊</a>
+  <a href="#" class="logout" onclick="auth.signOut(); return false;">登出🚪</a>
+</nav>
+
+
+<h1>🎪 寶鼻專屬遊樂園</h1>
+<p class="sub">玩遊戲拿星星,三顆星集滿,今天多送一張刮刮卡!</p>
+<div class="stars" id="stars"></div>
+<div class="main">
+  <div class="hub" id="hub"></div>
+  <div class="panel" id="g" hidden>
+    <h2 id="gt" style="margin:0 0 6px"></h2>
+    <div id="gb"></div>
+    <button class="b g" id="bk">← 回遊樂園</button>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const tk = () => new Date().toLocaleDateString("sv");
+const load = () => { try{ return JSON.parse(localStorage.getItem("sc2")||"{}"); }catch(_){ return {}; } };
+const shuffle = a => { a = a.slice(); for(let i=a.length-1;i>0;i--){ const j = Math.random()*(i+1)|0; [a[i],a[j]] = [a[j],a[i]]; } return a; };
+const rnd = a => a[Math.random()*a.length|0];
+const THEMES = ["","night","peach","mint"];
+document.documentElement.dataset.theme = THEMES[load().theme||0] || "";
+
+let tt = 0, timers = [];
+function toast(m){ const e = $("toast"); e.textContent = m; e.classList.add("show"); clearTimeout(tt); tt = setTimeout(()=>e.classList.remove("show"),3200); }
+function confetti(n=30){
+  const em = ["💖","✨","🎉","🌸","⭐","💕","🎀"];
+  for(let i=0;i<n;i++){ const s = document.createElement("span"); s.className = "fx"; s.textContent = em[i%em.length];
+    s.style.left = Math.random()*100+"vw"; s.style.fontSize = (1+Math.random()*1.2)+"rem"; s.style.animationDelay = Math.random()*.7+"s";
+    document.body.appendChild(s); setTimeout(()=>s.remove(),3600); }
+}
+const todayGames = () => { const p = load().park; return p && p.d===tk() ? p.g : {}; };
+function award(id){
+  const S = load(); if(!S.park || S.park.d!==tk()) S.park = {d:tk(),g:{}};
+  confetti(); if(navigator.vibrate) navigator.vibrate(120);
+  if(S.park.g[id]){ toast("今天這關的星星已經拿過囉,再接再厲!"); return; }
+  S.park.g[id] = 1;
+  if(Object.keys(S.park.g).length>=3){ const b = S.bonus && S.bonus.d===tk() ? S.bonus.n : 0; S.bonus = {d:tk(),n:b+1}; toast("🎁 三顆星集滿!回刮刮樂,今天多一張"); }
+  else toast("⭐ 獲得今日星星!");
+  try { 
+  const dataStr = JSON.stringify(S);
+  localStorage.setItem("sc2", dataStr); 
+  if(typeof auth !== 'undefined' && auth.currentUser) {
+    db.collection("coupleData").doc("scratchcard").set({sc2: dataStr}, {merge:true});
+  }
+} catch(_) { toast("儲存時發生錯誤"); }
+  hub();
+}
+
+/* ---------- 大廳 ---------- */
+const LIST = [
+  {id:"match",e:"🃏",t:"翻牌配對",d:"找出所有一樣的圖案",s:1},
+  {id:"catch",e:"💖",t:"接愛心",d:"25 秒接到 18 顆",s:1},
+  {id:"rps",e:"✌️",t:"猜拳大戰",d:"五戰三勝贏過我",s:1},
+  {id:"fortune",e:"🎋",t:"今日籤詩",d:"每天一支"},
+  {id:"dice",e:"🎲",t:"命運骰子",d:"吃什麼、做什麼、真心話"}
+];
+function hub(){
+  stopAll(); $("g").hidden = true; $("hub").hidden = false;
+  const g = todayGames(), n = Object.keys(g).length;
+  $("stars").textContent = "今日星星 " + "⭐".repeat(Math.min(n,3)) + "☆".repeat(Math.max(0,3-n)) + (n>=3?" ・ 已領取刮刮卡獎勵 🎁":"");
+  $("hub").textContent = "";
+  LIST.forEach(x => {
+    const b = document.createElement("button"); b.className = "gc";
+    b.innerHTML = `<span class="ok"></span><div class="e"></div><b></b><small></small>`;
+    b.children[1].textContent = x.e; b.children[2].textContent = x.t; b.children[3].textContent = x.d;
+    if(g[x.id]) b.children[0].textContent = "✅";
+    b.onclick = () => openGame(x); $("hub").appendChild(b);
+  });
+}
+function stopAll(){ timers.forEach(t=>{ clearInterval(t); clearTimeout(t); }); timers = []; }
+function openGame(x){ stopAll(); $("hub").hidden = true; $("g").hidden = false; $("gt").textContent = x.e+" "+x.t; $("gb").textContent = ""; GAMES[x.id]($("gb")); }
+$("bk").onclick = hub;
+
+const GAMES = {};
+/* ---------- 翻牌配對 ---------- */
+GAMES.match = el => {
+  const E = shuffle(["🐷","🍓","🧸","🌸","🍰","🎀","🐱","⭐","🍒","🦄"]).slice(0,6), cards = shuffle(E.concat(E));
+  let open = [], moves = 0, done = 0, lock = false;
+  el.innerHTML = `<div class="info">步數 <b id="mv">0</b></div><div class="mg" id="mg"></div><div class="res" id="rs"></div>`;
+  cards.forEach(c => {
+    const b = document.createElement("button"); b.className = "cd"; b.textContent = "❔";
+    b.onclick = () => {
+      if(lock || b.classList.contains("up") || b.classList.contains("ok")) return;
+      b.classList.add("up"); b.textContent = c; open.push([b,c]);
+      if(open.length===2){
+        moves++; $("mv").textContent = moves; const [[b1,c1],[b2,c2]] = open; open = [];
+        if(c1===c2){ b1.classList.add("ok"); b2.classList.add("ok"); if(++done===6){ $("rs").textContent = `🎉 ${moves} 步全部配對成功!`; award("match"); } }
+        else { lock = true; timers.push(setTimeout(()=>{ [b1,b2].forEach(x=>{ x.classList.remove("up"); x.textContent = "❔"; }); lock = false; },750)); }
+      }
+    };
+    $("mg").appendChild(b);
+  });
+};
+/* ---------- 接愛心 ---------- */
+GAMES.catch = el => {
+  let sc = 0, t = 25, run = false;
+  el.innerHTML = `<div class="info">時間 <b id="tm">25</b> 秒 ・ 愛心 <b id="sc">0</b>/18(別點到 💔)</div><div class="ar" id="ar"></div><button class="b" id="go">開始</button><div class="res" id="rs"></div>`;
+  const upd = () => { $("tm").textContent = t; $("sc").textContent = sc; };
+  $("go").onclick = () => {
+    if(run) return; run = true; sc = 0; t = 25; $("rs").textContent = ""; $("ar").textContent = ""; upd(); $("go").hidden = true;
+    timers.push(setInterval(()=>{
+      if(!run) return; const h = document.createElement("span"), good = Math.random()<.8; h.className = "hz"; h.textContent = good ? "💖" : "💔";
+      h.style.left = (Math.random()*84+2)+"%"; h.style.animationDuration = (2.1+Math.random()*1.1)+"s";
+      h.onpointerdown = () => { if(!run) return; sc = good ? sc+1 : Math.max(0,sc-2); upd(); h.remove(); };
+      h.onanimationend = () => h.remove(); $("ar").appendChild(h);
+    },520));
+    timers.push(setInterval(()=>{
+      if(--t<=0){ run = false; stopAll(); $("ar").textContent = ""; upd(); $("go").hidden = false; $("go").textContent = "再玩一次";
+        if(sc>=18){ $("rs").textContent = `🎉 接到 ${sc} 顆,過關!`; award("catch"); } else $("rs").textContent = `接到 ${sc} 顆,差一點!再挑戰看看`; }
+      else upd();
+    },1000));
+  };
+};
+/* ---------- 猜拳 ---------- */
+GAMES.rps = el => {
+  const H = ["✊","✌️","✋"]; let me = 0, op = 0, over = false;
+  el.innerHTML = `<div class="info">妳 <b id="m">0</b> : <b id="o">0</b> 我(先拿 3 分)</div><div class="big" id="vs">🆚</div><div id="bt"></div><div class="res" id="rs"></div><button class="b" id="again" hidden>再玩一次</button>`;
+  H.forEach((h,i) => { const b = document.createElement("button"); b.className = "rp"; b.textContent = h;
+    b.onclick = () => {
+      if(over) return; const o = Math.random()*3|0, d = (i-o+3)%3; $("vs").textContent = `${h} 🆚 ${H[o]}`;
+      if(d===2){ me++; $("rs").textContent = "這局妳贏!💪"; } else if(d===1){ op++; $("rs").textContent = "這局我贏 😏"; } else $("rs").textContent = "平手,再來!";
+      $("m").textContent = me; $("o").textContent = op;
+      if(me>=3||op>=3){ over = true; $("again").hidden = false; if(me>=3){ $("rs").textContent = "🎉 妳贏了這場!"; award("rps"); } else $("rs").textContent = "這場我贏了,再來挑戰我!"; }
+    }; $("bt").appendChild(b); });
+  $("again").onclick = () => GAMES.rps(el);
+};
+/* ---------- 今日籤詩 ---------- */
+GAMES.fortune = el => {
+  const F = [
+    ["大吉","今天心想事成,連紅綠燈都會幫妳","去喝一杯喜歡的飲料"],
+    ["大吉","遇到的人都對妳特別溫柔","出門前多擦一點護手霜"],
+    ["中吉","小確幸滿滿的一天,留意路邊的驚喜","吃一份喜歡的甜點"],
+    ["中吉","妳說的話今天特別有份量","把煩惱寫下來,晚上就忘了"],
+    ["小吉","慢慢來也很好,今天不趕","午後散步 10 分鐘"],
+    ["小吉","適合耍廢,罪惡感全免","追一集喜歡的劇"],
+    ["吉","會有人突然傳訊息給妳,是好消息","手機電量記得充飽"],
+    ["末吉","小小迷糊一下沒關係,有人幫妳接著","出門前確認鑰匙和手機"],
+    ["超級大吉","今天妳是主角,要什麼都可以開口","找寶貝撒個嬌,成功率 100%"]
+  ], C = ["粉紅","天藍","奶茶","薄荷綠","鵝黃","薰衣草紫"];
+  let h = 0; for(const ch of tk()) h = (h*31+ch.charCodeAt(0))>>>0;
+  const f = F[h%F.length];
+  el.innerHTML = `<div class="ft"><h2></h2><p></p><p><b>幸運色:</b><span></span>　<b>幸運數字:</b><span></span></p><p><b>今日小任務:</b><span></span></p></div><div class="info">每天只有一支,明天會換新的 🎋</div>`;
+  const q = el.querySelectorAll(".ft h2,.ft p,.ft span");
+  q[0].textContent = f[0]; q[1].textContent = f[1]; q[3].textContent = C[h%C.length]; q[4].textContent = (h%9)+1; q[6].textContent = f[2];
+};
+/* ---------- 命運骰子 ---------- */
+GAMES.dice = el => {
+  const D = {
+    "🍽️ 吃什麼":["火鍋","拉麵","燒肉","日式定食","鍋貼水餃","滷味","早午餐","甜點店","牛排","便利商店大餐"],
+    "🎬 做什麼":["看電影","夜景散步","夾娃娃機","逛街","在家追劇","騎車兜風","桌遊或電玩","去咖啡廳發呆","拍大頭貼","烤肉或野餐"],
+    "💬 真心話":["說一個最讓妳心動的小瞬間","現在最想跟我去哪裡","有什麼話還沒對我說","我哪個習慣最可愛","我們最好笑的回憶是哪一個"],
+    "🔥 大冒險":["對我說三句甜話","現在抱我 10 秒","傳一張最醜的自拍給我","用三種語氣說「我愛你」","學一種動物叫聲給我聽"]
+  };
+  let cat = Object.keys(D)[0];
+  el.innerHTML = `<div id="cs"></div><div class="big" id="df">🎲</div><div class="res" id="rs">選一個類別,按「擲!」</div><button class="b" id="roll">擲!</button>`;
+  const draw = () => { $("cs").textContent = ""; Object.keys(D).forEach(k => { const c = document.createElement("span"); c.className = "chip"+(k===cat?" on":""); c.textContent = k; c.onclick = () => { cat = k; draw(); $("rs").textContent = "按「擲!」"; }; $("cs").appendChild(c); }); };
+  draw();
+  $("roll").onclick = () => {
+    stopAll(); let n = 0; $("roll").disabled = true;
+    const iv = setInterval(()=>{ $("rs").textContent = rnd(D[cat]); $("df").textContent = rnd(["🎲","🎯","🎰","✨"]);
+      if(++n>=16){ clearInterval(iv); $("df").textContent = "🎯"; $("roll").disabled = false; if(navigator.vibrate) navigator.vibrate(80); confetti(14); } },80);
+    timers.push(iv);
+  };
+};
+hub();
+
+if(typeof auth !== 'undefined') {
+  auth.onAuthStateChanged(user => {
+    if(user) {
+      db.collection("coupleData").doc("scratchcard").get().then(doc => {
+        if (doc.exists && doc.data().sc2) {
+          localStorage.setItem("sc2", doc.data().sc2);
+          hub();
+        }
+      });
+    }
+  });
+}
+</script>
+</body>
+</html>

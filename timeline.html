@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>我們的故事 📖</title>
+<style>
+:root{--b1:#ffe3ec;--b2:#ffd0e4;--b3:#e6dcff;--fg:#4a2230;--card:#fff;--muted:#9b6b7d;--accent:#e8557a;--line:#f5cbd8}
+@media (prefers-color-scheme:dark){:root{--b1:#1d1217;--b2:#2a1424;--b3:#1c1631;--fg:#fbe4ea;--card:#2b1b22;--muted:#b88c9a;--accent:#ff7a9c;--line:#4a2f3a}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--fg);font-family:"PingFang TC","Noto Sans TC",system-ui,sans-serif;background:linear-gradient(135deg,var(--b1),var(--b2),var(--b3));background-size:300% 300%;animation:bg 14s ease infinite;display:flex;flex-direction:column;align-items:center;padding:24px 16px 60px;text-align:center;}
+@keyframes bg{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
+
+nav { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 24px; z-index: 10; position: relative; }
+nav a { background: var(--card); color: var(--accent); text-decoration: none; padding: 8px 16px; border-radius: 999px; font-size: 0.9rem; font-weight: bold; border: 1.5px solid var(--accent); transition: 0.2s; }
+nav a.active { background: var(--accent); color: #fff; }
+
+h1{font-size:1.75rem;margin:4px 0;}
+.sub{color:var(--muted);font-size:.92rem;margin-bottom:20px;}
+.timeline { position: relative; max-width: 600px; margin: 0 auto; padding: 20px 0; text-align: left;}
+.timeline::after { content: ''; position: absolute; width: 4px; background-color: var(--accent); top: 0; bottom: 0; left: 20px; border-radius: 2px;}
+.container { padding: 10px 20px 10px 50px; position: relative; background-color: inherit; width: 100%;}
+.container::after { content: '❤️'; position: absolute; width: 24px; height: 24px; left: 10px; background-color: var(--card); border: 3px solid var(--accent); border-radius: 50%; z-index: 1; display: flex; align-items: center; justify-content: center; font-size: 10px;}
+.content { padding: 16px; background-color: var(--card); position: relative; border-radius: 12px; box-shadow: 0 6px 16px rgba(232,85,122,.2); border: 2px solid var(--line);}
+.content h2 { margin: 0 0 8px; font-size: 1.2rem; color: var(--accent);}
+.content p { margin: 0; font-size: 0.95rem; line-height: 1.5;}
+.date { font-weight: bold; color: var(--muted); font-size: 0.85rem; margin-bottom: 4px; display: block;}
+</style>
+
+<!-- Firebase Setup -->
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBL0LoCSkThMXqYoW8nxlIsRt7A6YyObiI",
+    authDomain: "tonybetty-354a7.firebaseapp.com",
+    projectId: "tonybetty-354a7",
+    storageBucket: "tonybetty-354a7.firebasestorage.app",
+    messagingSenderId: "890099191965",
+    appId: "1:890099191965:web:55e9df1ea918889364c474"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  
+  if (!window.location.pathname.endsWith('login.html')) {
+    auth.onAuthStateChanged(user => {
+      if (!user) window.location.replace('login.html');
+    });
+  }
+</script>
+</head>
+<body>
+<nav>
+  <a href="index.html">刮刮樂</a>
+  <a href="park.html">遊樂園</a>
+  <a href="timeline.html" class="active">我們的故事</a>
+  <a href="daily.html">每日問答</a>
+  <a href="capsule.html">時光膠囊</a>
+  <a href="#" class="logout" onclick="auth.signOut(); return false;">登出🚪</a>
+</nav>
+
+
+<h1>📖 我們的故事</h1>
+<p class="sub">紀錄每個充滿愛與歡笑的日子</p>
+<div class="timeline">
+  <div class="container">
+    <div class="content">
+      <span class="date">2025年 萬聖節 🎃</span>
+      <h2>我們的相遇</h2>
+      <p>在這個特別的節日，我們認識了彼此，這是所有故事的開端。</p>
+    </div>
+  </div>
+  <div class="container">
+    <div class="content">
+      <span class="date">2025年 11月 11日 💖</span>
+      <h2>正式在一起</h2>
+      <p>我們決定牽起彼此的手，成為對方專屬的寶鼻。光棍節不再孤單，因為我們擁有了彼此。</p>
+    </div>
+  </div>
+  <div class="container">
+    <div class="content">
+      <span class="date">2025年 11月 12日 ✈️</span>
+      <h2>第一次一起開模擬機</h2>
+      <p>帶著寶寶去松山機場體驗模擬機，滿滿的新奇與快樂。</p>
+    </div>
+  </div>
+  <div class="container">
+    <div class="content">
+      <span class="date">2025年 11月 25日 🏥</span>
+      <h2>寶寶打針痛痛</h2>
+      <p>陪著怕痛的寶寶看醫生，滿滿的心疼，哥哥會一直給妳呼呼的！</p>
+    </div>
+  </div>
+  <div class="container">
+    <div class="content">
+      <span class="date">2025年 12月 06日 ⛸️</span>
+      <h2>溜冰與聖誕樹約會</h2>
+      <p>一起去溜冰，還去看了超漂亮的聖誕樹，留下好多閃亮的合照。</p>
+    </div>
+  </div>
+  <div class="container">
+    <div class="content">
+      <span class="date">2025年 12月 19日 🏃‍♂️</span>
+      <h2>台南飛奔回台北</h2>
+      <p>雖然很忙，但為了想見到寶寶，一下飛機就趕快回到妳身邊，因為愛妳愛到想把每一秒都給妳。</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>
