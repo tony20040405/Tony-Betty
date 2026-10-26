@@ -419,6 +419,19 @@ function reloadST(){
   Object.assign(ST, defaultST(), saved);
   localStorage.setItem("sc2", JSON.stringify(ST));   // 統一格式,避免兩台裝置互相觸發存檔
 }
+/* 定宇在後台送的額外刮刮卡:coupleData/bonus.total 比我已領的多,就把差額加到今天的張數 */
+function watchGrant(user){
+  if(isAdminUser(user)) return;
+  db.collection("coupleData").doc("bonus").onSnapshot(snap => {
+    if(!snap.exists) return;
+    const total = Number(snap.data().total||0), add = total - Number(ST.grantSeen||0);
+    if(add <= 0) return;
+    ST.bonus = {d:tk(), n:(ST.bonus.d===tk()?ST.bonus.n:0)+add};
+    ST.grantSeen = total; save(); chips();
+    if(!revealed && moves===0) newCard(); else if(revealed) nextBtn.disabled = left()<=0;
+    toast(`🎁 定宇送你 ${add} 張額外刮刮卡!`);
+  }, e => console.warn("讀取額外刮刮卡失敗", e));
+}
 (async () => {
   const user = await authReady; if(!user) return;
   const [site] = await Promise.all([loadSiteConfig(), cloudSync.pull()]);
@@ -427,6 +440,7 @@ function reloadST(){
   login(); applyTheme(); applyText(); newCard(); checkAch();
   if(loginMsg) setTimeout(()=>toast(loginMsg),600);
   save();
+  watchGrant(user);
   /* 別台裝置存檔後,這台自動更新(正在刮的卡不打斷) */
   cloudSync.listen(() => {
     reloadST(); applyTheme(); chips(); checkAch();

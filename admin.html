@@ -40,6 +40,19 @@
   </div>
   <p id="status"></p>
 </div>
+
+<div class="panel" style="margin-top:20px">
+  <h2>🎁 送寶鼻額外刮刮卡</h2>
+  <p class="hint">按下去後,寶鼻那邊會立刻多出幾張「今天」可以刮的卡(她正開著網站就即時收到,沒開的話下次打開時收到)。</p>
+  <div class="btns" style="align-items:center">
+    <select id="bonus-n" style="font-size:1rem;padding:10px;border-radius:12px;border:2px solid var(--line);background:var(--b1);color:var(--fg)">
+      <option value="1">1 張</option><option value="2">2 張</option><option value="3">3 張</option><option value="5">5 張</option><option value="10">10 張</option>
+    </select>
+    <button id="btn-bonus">送出 🎁</button>
+  </div>
+  <p class="hint">累計已送出:<b id="bonus-total">0</b> 張</p>
+  <p id="bonus-status" style="font-weight:bold;color:var(--accent);min-height:1.2em"></p>
+</div>
 <script>
 (async () => {
   const user = await authReady;
@@ -50,6 +63,19 @@
 
   async function load() { say('讀取中...'); show(await loadSiteConfig()); say(''); }
   await load();
+
+  /* 送寶鼻額外刮刮卡:累加 coupleData/bonus.total,寶鼻的網頁會偵測差額並加到她今天的張數 */
+  const bonusRef = db.collection('coupleData').doc('bonus');
+  bonusRef.onSnapshot(s => { $('bonus-total').textContent = s.exists ? Number(s.data().total || 0) : 0; });
+  $('btn-bonus').onclick = async () => {
+    const n = Number($('bonus-n').value), out = $('bonus-status');
+    if (!confirm('要送寶鼻 ' + n + ' 張額外刮刮卡嗎?')) return;
+    out.textContent = '送出中...';
+    try {
+      await bonusRef.set({ total: firebase.firestore.FieldValue.increment(n), updatedAt: Date.now(), lastN: n }, { merge: true });
+      out.textContent = '✅ 已送出 ' + n + ' 張!';
+    } catch (e) { out.textContent = '送出失敗:' + e.message; }
+  };
 
   $('btn-reload').onclick = load;
   $('btn-reset').onclick = () => {
