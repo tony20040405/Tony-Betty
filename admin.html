@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>後台管理 ⚙️</title>
+<style>
+:root{--b1:#ffe3ec;--b2:#ffd0e4;--b3:#e6dcff;--fg:#4a2230;--card:#fff;--muted:#9b6b7d;--accent:#e8557a;--line:#f5cbd8;--tc:#e8557a}
+@media (prefers-color-scheme:dark){:root{--b1:#1d1217;--b2:#2a1424;--b3:#1c1631;--fg:#fbe4ea;--card:#2b1b22;--muted:#b88c9a;--accent:#ff7a9c;--line:#4a2f3a}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--fg);font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;background:linear-gradient(135deg,var(--b1),var(--b2),var(--b3));background-size:300% 300%;animation:bg 14s ease infinite;display:flex;flex-direction:column;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 24px) 16px calc(env(safe-area-inset-bottom,0px) + 40px);text-align:center;overflow-x:hidden}
+@keyframes bg{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
+h1{font-size:1.75rem;margin:4px 0;text-shadow:0 2px 12px rgba(232,85,122,.25)}
+.sub{color:var(--muted);margin:0 0 14px;font-size:.92rem}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:18px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 13px;font-size:.85rem;box-shadow:0 3px 10px rgba(232,85,122,.12)}
+.chip b{color:var(--accent)}
+.wrap{position:relative;width:min(100%,350px);aspect-ratio:4/3;background:var(--card);border-radius:22px;border:3px solid var(--line);box-shadow:0 12px 34px rgba(232,85,122,.28);overflow:hidden;touch-action:none;transition:border-color .5s,box-shadow .5s}
+.wrap.win{border-color:var(--tc);animation:glow 1.6s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 18px var(--tc)}50%{box-shadow:0 0 44px var(--tc)}}
+.prize{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:12px}
+.badge{font-size:.75rem;font-weight:700;letter-spacing:.15em;color:#fff;background:var(--tc);border-radius:999px;padding:2px 12px}
+.prize .e{font-size:3.3rem;line-height:1.1}
+.prize .t{font-size:1.25rem;font-weight:800;color:var(--tc)}
+.prize .n{font-size:.85rem;color:var(--muted);max-width:90%}
+.win .e{animation:pop .7s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.2) rotate(-25deg)}to{transform:none}}
+canvas{position:absolute;inset:0;width:100%;height:100%;cursor:grab;transition:opacity .6s}
+canvas.done{opacity:0;pointer-events:none}
+.sp{position:absolute;pointer-events:none;font-size:14px;animation:sp .7s forwards;z-index:3}
+@keyframes sp{to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+.info{margin:16px 0 10px;color:var(--muted);min-height:1.4em;font-size:.93rem}
+.btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+button{font-family:inherit;background:var(--accent);color:#fff;border:0;border-radius:999px;padding:12px 26px;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 6px 16px rgba(232,85,122,.3);transition:transform .15s,opacity .2s}
+button:active{transform:scale(.95)}
+button:disabled{opacity:.4;cursor:default}
+button.g{background:var(--card);color:var(--accent);border:1.5px solid var(--accent);box-shadow:none;padding:10px 18px;font-size:.92rem}
+.panel{width:min(100%,520px);margin-top:22px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;text-align:left}
+.panel h2{margin:0 0 4px;font-size:1.1rem;color:var(--accent)}
+.hint{color:var(--muted);font-size:.8rem;margin:2px 0 8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.it{border:2px solid var(--c);border-radius:12px;padding:8px;text-align:center;font-size:.85rem;background:var(--card)}
+.it.lock{opacity:.45;filter:grayscale(1)}
+.it .e{font-size:1.8rem}
+.it small{display:block;color:var(--muted)}
+.it button{padding:4px 12px;font-size:.78rem;margin-top:4px;box-shadow:none}
+.heart{position:fixed;bottom:-30px;pointer-events:none;opacity:.7;animation:rise linear forwards;z-index:0}
+@keyframes rise{to{transform:translateY(-110vh) rotate(40deg);opacity:0}}
+.fx{position:fixed;top:-30px;pointer-events:none;animation:fall 2.6s linear forwards;z-index:9}
+@keyframes fall{to{transform:translateY(112vh) rotate(420deg);opacity:.5}}
+textarea{width:100%;height:240px;background:var(--b1);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:8px;font:12px/1.4 monospace}
+[hidden]{display:none!important}
+html[data-theme=night]{--b1:#14122b;--b2:#1d1a42;--b3:#2a1b4d;--fg:#ece8ff;--card:#221f45;--muted:#a9a3d6;--accent:#9d8cff;--line:#3a3570}
+html[data-theme=peach]{--b1:#fff1e0;--b2:#ffd9b8;--b3:#ffc7c7;--fg:#4a2a1a;--card:#fff;--muted:#a8765a;--accent:#ff7a45;--line:#ffd6b5}
+html[data-theme=mint]{--b1:#e3fff3;--b2:#c9f5e3;--b3:#d5e8ff;--fg:#17382d;--card:#fff;--muted:#5f9b86;--accent:#1fb58a;--line:#bfe8d6}
+#md{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:20;padding:18px}
+#md .box{background:var(--card);border-radius:20px;padding:22px;max-width:340px;width:100%;max-height:85vh;overflow:auto;text-align:center;border:3px solid var(--accent)}
+#md .box img{max-width:100%;border-radius:12px;margin:8px 0}
+#mdN{white-space:pre-wrap;line-height:1.7;margin:8px 0 14px;text-align:left}
+#toast{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);left:50%;transform:translate(-50%,20px);background:var(--accent);color:#fff;padding:10px 18px;border-radius:999px;font-size:.9rem;opacity:0;transition:.4s;z-index:30;pointer-events:none;max-width:90vw}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+.wheelbox{position:relative;width:260px;margin:10px auto}
+.ptr{position:absolute;top:-8px;left:50%;margin-left:-11px;border:11px solid transparent;border-top:22px solid var(--accent);z-index:2}
+#wc{position:relative;inset:auto;display:block;cursor:default;width:260px;height:260px;border-radius:50%;box-shadow:0 8px 24px rgba(0,0,0,.2);transition:transform 4.2s cubic-bezier(.12,.7,.1,1)}
+.bdg{display:inline-block;margin:3px;padding:4px 10px;border-radius:999px;border:1.5px solid var(--accent);font-size:.8rem}
+.bdg.off{opacity:.35;filter:grayscale(1)}
+
+nav { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 24px; z-index: 10; position: relative; }
+nav a { background: var(--card); color: var(--accent); text-decoration: none; padding: 8px 16px; border-radius: 999px; font-size: 0.9rem; font-weight: bold; border: 1.5px solid var(--accent); transition: 0.2s; }
+nav a.active { background: var(--accent); color: #fff; }
+</style>
+
+<!-- Firebase Setup -->
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js">
+if(typeof auth !== 'undefined') {
+  auth.onAuthStateChanged(user => {
+    if(user) {
+      // 讀取全局設定
+      db.collection("coupleData").doc("config").get().then(doc => {
+        if(doc.exists) {
+          cfg = Object.assign(DEFAULT_CONFIG.scratchcard, doc.data().scratchcard);
+        }
+        applyText();
+      });
+      // 讀取存檔
+      db.collection("coupleData").doc("scratchcard").get().then(doc => {
+        if (doc.exists && doc.data().sc2) {
+          Object.assign(ST, JSON.parse(doc.data().sc2));
+          localStorage.setItem("sc2", doc.data().sc2);
+          chips(); if (document.getElementById("col") && !document.getElementById("col").hidden) colGrid(); checkAch(); applyTheme();
+        }
+      });
+    }
+  });
+}
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js">
+if(typeof auth !== 'undefined') {
+  auth.onAuthStateChanged(user => {
+    if(user) {
+      // 讀取全局設定
+      db.collection("coupleData").doc("config").get().then(doc => {
+        if(doc.exists) {
+          cfg = Object.assign(DEFAULT_CONFIG.scratchcard, doc.data().scratchcard);
+        }
+        applyText();
+      });
+      // 讀取存檔
+      db.collection("coupleData").doc("scratchcard").get().then(doc => {
+        if (doc.exists && doc.data().sc2) {
+          Object.assign(ST, JSON.parse(doc.data().sc2));
+          localStorage.setItem("sc2", doc.data().sc2);
+          chips(); if (document.getElementById("col") && !document.getElementById("col").hidden) colGrid(); checkAch(); applyTheme();
+        }
+      });
+    }
+  });
+}
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js">
+if(typeof auth !== 'undefined') {
+  auth.onAuthStateChanged(user => {
+    if(user) {
+      // 讀取全局設定
+      db.collection("coupleData").doc("config").get().then(doc => {
+        if(doc.exists) {
+          cfg = Object.assign(DEFAULT_CONFIG.scratchcard, doc.data().scratchcard);
+        }
+        applyText();
+      });
+      // 讀取存檔
+      db.collection("coupleData").doc("scratchcard").get().then(doc => {
+        if (doc.exists && doc.data().sc2) {
+          Object.assign(ST, JSON.parse(doc.data().sc2));
+          localStorage.setItem("sc2", doc.data().sc2);
+          chips(); if (document.getElementById("col") && !document.getElementById("col").hidden) colGrid(); checkAch(); applyTheme();
+        }
+      });
+    }
+  });
+}
+</script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBL0LoCSkThMXqYoW8nxlIsRt7A6YyObiI",
+    authDomain: "tonybetty-354a7.firebaseapp.com",
+    projectId: "tonybetty-354a7",
+    storageBucket: "tonybetty-354a7.firebasestorage.app",
+    messagingSenderId: "890099191965",
+    appId: "1:890099191965:web:55e9df1ea918889364c474"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  
+  if (!window.location.pathname.endsWith('login.html')) {
+    auth.onAuthStateChanged(user => {
+      if (!user) window.location.replace('login.html');
+    });
+  }
+
+if(typeof auth !== 'undefined') {
+  auth.onAuthStateChanged(user => {
+    if(user) {
+      // 讀取全局設定
+      db.collection("coupleData").doc("config").get().then(doc => {
+        if(doc.exists) {
+          cfg = Object.assign(DEFAULT_CONFIG.scratchcard, doc.data().scratchcard);
+        }
+        applyText();
+      });
+      // 讀取存檔
+      db.collection("coupleData").doc("scratchcard").get().then(doc => {
+        if (doc.exists && doc.data().sc2) {
+          Object.assign(ST, JSON.parse(doc.data().sc2));
+          localStorage.setItem("sc2", doc.data().sc2);
+          chips(); if (document.getElementById("col") && !document.getElementById("col").hidden) colGrid(); checkAch(); applyTheme();
+        }
+      });
+    }
+  });
+}
+</script>
+</head>
+<body>
+<nav>
+  <a href="index.html">刮刮樂</a>
+  <a href="park.html">遊樂園</a>
+  <a href="timeline.html">我們的故事</a>
+  <a href="daily.html">每日問答</a>
+  <a href="capsule.html">時光膠囊</a>
+  <a href="admin.html" class="active">後台管理⚙️</a>
+  <a href="#" class="logout" onclick="auth.signOut(); return false;">登出🚪</a>
+</nav>
+
+<h1>⚙️ 後台控制中心</h1>
+<p class="sub">在這裡修改網站的所有內容！修改完請按「儲存設定到雲端」</p>
+<div class="panel" style="width: min(100%, 720px);">
+  <h2>📝 網站全局設定 (JSON格式)</h2>
+  <p class="hint" style="color:var(--accent); font-weight:bold; font-size:0.9rem;">⚠️ 編輯教學：這是一個所有網頁共用的設定檔。<br>請小心修改【引號 " "】裡面的字，千萬不要刪除到雙引號 (") 或括號 ({}) 喔！</p>
+  <textarea id="config-json" style="height: 600px; font-family: monospace; white-space: pre; font-size:13px; line-height:1.4; margin-top:8px;"></textarea>
+  
+  <div class="btns" style="margin-top:16px; justify-content: flex-start;">
+    <button onclick="saveConfig()">儲存設定到雲端 ☁️</button>
+    <button class="g" onclick="resetConfig()">還原為預設值</button>
+  </div>
+  <p id="status" style="margin-top:12px; font-weight:bold; color:var(--accent);"></p>
+</div>
+
+<script>
+
+const DEFAULT_CONFIG = {
+  names: { boy: "定宇本寶", girl: "寶鼻小寶" },
+  dates: { start: "2025-11-11", armyStart: "2026-03-01", armyEnd: "2026-06-30" },
+  timeline: [
+    { date: "2025年 萬聖節 🎃", title: "我們的相遇", desc: "在這個特別的節日，我們認識了彼此，這是所有故事的開端。" },
+    { date: "2025年 11月 11日 💖", title: "正式在一起", desc: "我們決定牽起彼此的手，成為對方專屬的寶鼻。光棍節不再孤單，因為我們擁有了彼此。" },
+    { date: "2025年 11月 12日 ✈️", title: "第一次一起開模擬機", desc: "帶著寶寶去松山機場體驗模擬機，滿滿的新奇與快樂。" },
+    { date: "2025年 11月 25日 🏥", title: "寶寶打針痛痛", desc: "陪著怕痛的寶寶看醫生，滿滿的心疼，本寶會一直給妳呼呼的！" },
+    { date: "2025年 12月 06日 ⛸️", title: "溜冰與聖誕樹約會", desc: "一起去溜冰，還去看了超漂亮的聖誕樹，留下好多閃亮的合照。" },
+    { date: "2025年 12月 19日 🏃‍♂️", title: "台南飛奔回台北", desc: "雖然很忙，但為了想見到寶寶，一下飛機就趕快回到妳身邊，因為愛妳愛到想把每一秒都給妳。" }
+  ],
+  dailyQuestions: [
+    "最喜歡對方身上的什麼味道？", "說出對方一個讓你覺得超可愛的小習慣！", "第一次約會時，心裡在想什麼？", "如果對方是一隻動物，你覺得是什麼？",
+    "最喜歡兩個人一起做的哪件事？", "對方做過最讓你感動的一件小事？", "用三個詞形容現在的感情狀態！", "最近一次因為對方心跳加速是什麼時候？"
+  ],
+  capsule: {
+    dailyMessages: [
+      "寶鼻早安！今天有沒有乖乖吃早餐呀？就算我不在，也不可以餓肚子喔！愛妳嗯嘛 😘",
+      "今天的天氣如何呢？出門記得多帶件外套，不要讓我擔心妳感冒了。",
+      "寶寶～在軍中真的很難熬，但我只要想到妳可愛的臉，就覺得充滿動力了！",
+      "偷偷跟妳說，今天做操的時候我又在想妳了，好想趕快放假回去給妳一個大大的抱抱。",
+      "如果今天上課或工作覺得累，記得給自己買一杯好喝的飲料！本寶請客（記在帳上等我回去結）！",
+      "我是不是很煩，就算當兵還是要每天跟妳說一次：我超級愛妳的！",
+      "寶寶今天也要加油喔！妳是最棒的，如果有誰惹妳生氣，等我回去幫妳揍他！",
+      "倒數的日子又少了一天，好想捏捏妳的臉頰，今晚要夢到我喔 💤"
+    ],
+    openWhen: [
+      { icon: "🩸", title: "當妳那個來、肚子痛痛的時候", content: "寶鼻～肚子又痛痛了嗎？🥺\n\n對不起本寶現在沒辦法親自幫妳敷熱水袋、也沒辦法過去給妳抱抱。妳一定要乖乖喝熱水，把暖暖包貼在肚子上，不要硬撐知道嗎？\n\n想著本寶的手正在幫妳揉揉肚子... 痛痛飛走！辛苦寶鼻了，等我回去一定好好補償妳，愛妳喔！" },
+      { icon: "😡", title: "當妳遇到雷組員 / 心情很煩的時候", content: "是哪個白目惹我們家小寶生氣了？！😡\n\n深呼吸～不要拿別人的愚蠢來懲罰自己可愛的臉蛋。妳已經做得很好了，真的是他們太雷！\n\n妳可以盡情在心裡罵他們（或是去我們的 LINE 留言罵，我放假一定一條一條看）。不管怎樣，本寶永遠站在妳這邊，妳是最棒的！消消氣，去吃點好吃的甜點吧！" },
+      { icon: "😢", title: "當妳覺得孤單、特別想我的時候", content: "寶寶... 我其實也超級超級想妳的。🥺\n\n雖然現在沒辦法馬上回妳訊息，也沒辦法立刻飛奔到妳身邊，但請妳記得，我的心一直都在妳那裡，從來沒有離開過（畢竟我早就被妳偷走了呀）。\n\n不要哭哭，去抱抱我送妳的娃娃，或者看看我們以前的照片。時間過得很快的，等我放假回去，我要把這幾天欠的抱抱跟親親全部補齊！嗯嘛！" },
+      { icon: "💤", title: "當妳半夜睡不著的時候", content: "小傻瓜，怎麼還不睡覺？又在滑 Threads 還是看短劇了嗎？😆\n\n乖乖放下手機，閉上眼睛。想想我們之後要去哪裡約會、要去吃什麼好吃的火鍋。或者想想本寶穿軍服帥氣的樣子（？\n\n我在軍中也會在夢裡去找妳的。快點睡吧，晚安寶鼻，愛妳喔 💖" }
+    ]
+  },
+  scratchcard: {
+    title: "💖 寶鼻專屬刮刮樂",
+    subtitle: "用手指刮開銀色的部分,看看今天抽到什麼!",
+    dailyLimit: 3,
+    wheelLimit: 1,
+    photo: "",
+    letter: "寶鼻,謝謝妳一直在我身邊。\n不管多忙,回頭都有妳,這就是我最大的幸運。",
+    anniversaryNote: "一年了。謝謝妳陪我走過每一天,接下來也請多多指教 💖",
+    wheel: [
+      {e:"🎟️", t:"加刮一張", bonus:1, w:2},
+      {e:"🤗", t:"抱抱 +1", w:3},
+      {e:"😘", t:"親親 +1", w:3},
+      {e:"🧋", t:"小點心一份", w:2},
+      {e:"🎵", t:"我唱一首給妳", w:2},
+      {e:"💬", t:"聽我說一句甜話", w:3},
+      {e:"📸", t:"拍張合照", w:2},
+      {e:"💖", t:"愛妳一次", w:2}
+    ],
+    prizes: [
+      {"e": "🤗", "t": "超大擁抱一次", "n": "抱緊處理,電量充飽 100%", "r": "N", "w": 5},
+      {"e": "😘", "t": "親親一個", "n": "限時限量,現場兌現", "r": "N", "w": 5},
+      {"e": "🧋", "t": "飲料請客一杯", "n": "想喝什麼都可以", "r": "N", "w": 5},
+      {"e": "🧽", "t": "按摩10分鐘券一張", "n": "今天讓寶鼻放鬆", "r": "N", "w": 5},
+      {"e": "🙋", "t": "一次「妳說得對」", "n": "這次我不反駁,無條件同意", "r": "N", "w": 5},
+      {"e": "📱", "t": "專屬自拍模特一次", "n": "我當攝影師,拍到妳滿意為止", "r": "N", "w": 5},
+      {"e": "🍟", "t": "偷吃一口券", "n": "我的餐點隨妳偷吃,我不會抱怨", "r": "N", "w": 5},
+      {"e": "🛌", "t": "看紅果短劇無時間限制", "n": "貼心提醒看久了記得休息一下", "r": "N", "w": 5},
+      {"e": "🍰", "t": "甜點一份", "n": "妳挑,我付", "r": "R", "w": 3},
+      {"e": "🍽️", "t": "指定晚餐一次", "n": "今晚吃什麼,妳說了算", "r": "R", "w": 3},
+      {"e": "🎬", "t": "電影約會一次", "n": "所有費用我出", "r": "R", "w": 3},
+      {"e": "💆", "t": "按摩 10 分鐘", "n": "肩膀交給我", "r": "R", "w": 3},
+      {"e": "🧦", "t": "腳底按摩 15 分鐘", "n": "技術不保證,但保證舒服", "r": "R", "w": 3},
+      {"e": "🍳", "t": "早餐我來", "n": "今天的早餐由我負責", "r": "R", "w": 3},
+      {"e": "🎮", "t": "任一遊戲讓妳贏一局", "n": "放水程度由我決定,妳不准發現", "r": "R", "w": 3},
+      {"e": "🛍️", "t": "小禮物任選一個", "n": "讓寶鼻開心就好", "r": "E", "w": 2},
+      {"e": "🌙", "t": "專心陪伴一整晚", "n": "手機放一邊,只聽妳說", "r": "E", "w": 2},
+      {"e": "📸", "t": "情侶寫真約拍", "n": "找個好天氣,留下我們的紀錄", "r": "E", "w": 2},
+      {"e": "💸", "t": "逛街我付錢一小時", "n": "時間內看到喜歡的,我買單", "r": "E", "w": 2},
+      {"e": "🍲", "t": "火鍋吃到飽", "n": "肚子餓著來,吃到滿意為止", "r": "E", "w": 2},
+      {"e": "🎂", "t": "一週年紀念大禮", "n": "一年了,謝謝妳一直在", "r": "L", "w": 0.8},
+      {"e": "🗝️", "t": "無限期願望券", "n": "任何時候都能用,我說到做到", "r": "L", "w": 0.6},
+      {"e": "🏖️", "t": "兩天一夜小旅行", "n": "地點妳選,行程我排", "r": "L", "w": 0.5},
+      {"e": "👑", "t": "當一天公主", "n": "今天所有事情都交給我", "r": "L", "w": 0.7},
+      {"e": "🎤", "t": "點歌我唱一首", "n": "五音不全也要唱完", "r": "N", "w": 5},
+      {"e": "🫶", "t": "比愛心合照一張", "n": "隨時隨地,說比就比", "r": "N", "w": 5},
+      {"e": "🍬", "t": "零食補給一包", "n": "想吃什麼我去買", "r": "N", "w": 5},
+      {"e": "🧸", "t": "夾娃娃機一次", "n": "夾到算妳的,夾不到算我的", "r": "N", "w": 5},
+      {"e": "🛋️", "t": "今天家事全免", "n": "妳負責躺著", "r": "N", "w": 5},
+      {"e": "💬", "t": "聽妳碎念 10 分鐘", "n": "不插嘴、不滑手機", "r": "N", "w": 5},
+      {"e": "🐶", "t": "學動物叫一次", "n": "指定動物,我學到妳笑為止", "r": "N", "w": 5},
+      {"e": "🥊", "t": "挑戰我一局", "n": "妳贏了有獎,輸了我請喝飲料", "r": "R", "w": 3},
+      {"e": "🧁", "t": "親手做點心", "n": "賣相不保證,心意滿分", "r": "R", "w": 3},
+      {"e": "🌃", "t": "夜景散步約會", "n": "牽手走一圈,什麼都不用做", "r": "R", "w": 3},
+      {"e": "🎁", "t": "神祕小禮物", "n": "拆開之前不能問", "r": "R", "w": 3},
+      {"e": "🛁", "t": "泡腳放鬆一次", "n": "水我來接,毛巾我來拿", "r": "R", "w": 3},
+      {"e": "🎢", "t": "遊樂園一日約會", "n": "妳想玩哪個,我都陪", "r": "E", "w": 2},
+      {"e": "🍣", "t": "指定餐廳吃大餐", "n": "預算我先準備好", "r": "E", "w": 2},
+      {"e": "🌸", "t": "一束花", "n": "花店隨妳挑", "r": "E", "w": 2},
+      {"e": "🗓️", "t": "一日行程我全包", "n": "從早到晚,我來安排", "r": "L", "w": 0.6},
+      {"e": "🌈", "t": "沒有理由的驚喜", "n": "什麼時候來,連我都要想一想", "r": "L", "w": 0.5}
+    ]
+  }
+};
+
+
+if(typeof auth !== 'undefined') {
+  auth.onAuthStateChanged(user => {
+    if(user) {
+      db.collection("coupleData").doc("config").get().then(doc => {
+        if(doc.exists) {
+          document.getElementById("config-json").value = JSON.stringify(doc.data(), null, 2);
+        } else {
+          document.getElementById("config-json").value = JSON.stringify(DEFAULT_CONFIG, null, 2);
+        }
+      });
+    }
+  });
+}
+
+function saveConfig() {
+  document.getElementById("status").innerText = "儲存中...";
+  try {
+    const data = JSON.parse(document.getElementById("config-json").value);
+    db.collection("coupleData").doc("config").set(data).then(() => {
+      document.getElementById("status").innerText = "✅ 儲存成功！網站內容已更新！";
+      setTimeout(()=> document.getElementById("status").innerText = "", 3000);
+    }).catch(e => {
+      document.getElementById("status").innerText = "儲存失敗：" + e.message;
+    });
+  } catch (e) {
+    document.getElementById("status").innerText = "❌ JSON 格式有錯誤，請檢查是否有少引號或逗號：" + e.message;
+  }
+}
+
+function resetConfig() {
+  if(confirm("確定要把所有設定還原成最初的預設值嗎？(未按儲存前不會上傳雲端)")) {
+    document.getElementById("config-json").value = JSON.stringify(DEFAULT_CONFIG, null, 2);
+    document.getElementById("status").innerText = "已還原為預設值，請按儲存上傳！";
+  }
+}
+</script>
+</body>
+</html>
