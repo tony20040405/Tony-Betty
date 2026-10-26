@@ -111,7 +111,18 @@ if(typeof auth !== 'undefined') {
   
   if (!window.location.pathname.endsWith('login.html')) {
     auth.onAuthStateChanged(user => {
-      if (!user) window.location.replace('login.html');
+      if (!user) {
+        window.location.replace('login.html');
+      } else {
+        const adminLink = document.getElementById('admin-link');
+        if (adminLink && user.email === 'tony0930508440@gmail.com') {
+          adminLink.style.display = 'inline-block';
+        }
+        if (window.location.pathname.endsWith('admin.html') && user.email !== 'tony0930508440@gmail.com') {
+          alert('只有定宇本寶才能進入後台喔！');
+          window.location.replace('index.html');
+        }
+      }
     });
   }
 
@@ -136,10 +147,8 @@ if(typeof auth !== 'undefined') {
   <a href="timeline.html">我們的故事</a>
   <a href="daily.html">每日問答</a>
   <a href="capsule.html">時光膠囊</a>
-  <a href="admin.html">後台管理⚙️</a>
   <a href="#" class="logout" onclick="auth.signOut(); return false;">登出🚪</a>
 </nav>
-
 
 
 <h1>🎪 寶鼻專屬遊樂園</h1>
