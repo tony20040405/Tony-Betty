@@ -51,51 +51,16 @@ button.g{background:transparent;color:var(--accent);border:1.5px solid var(--acc
 nav { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 24px; z-index: 10; position: relative; }
 nav a { background: var(--card); color: var(--accent); text-decoration: none; padding: 8px 16px; border-radius: 999px; font-size: 0.9rem; font-weight: bold; border: 1.5px solid var(--accent); transition: 0.2s; }
 nav a.active { background: var(--accent); color: #fff; }
+
+.wheelbox{position:relative;width:260px;margin:10px auto}
+.ptr{position:absolute;top:-8px;left:50%;margin-left:-11px;border:11px solid transparent;border-top:22px solid var(--accent);z-index:2}
+#fwc{position:relative;display:block;width:260px;height:260px;border-radius:50%;box-shadow:0 8px 24px rgba(0,0,0,.2);transition:transform 4s cubic-bezier(.12,.7,.1,1)}
 </style>
 
 <!-- Firebase Setup -->
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js">
-if(typeof auth !== 'undefined') {
-  auth.onAuthStateChanged(user => {
-    if(user) {
-      db.collection("coupleData").doc("scratchcard").get().then(doc => {
-        if (doc.exists && doc.data().sc2) {
-          localStorage.setItem("sc2", doc.data().sc2);
-          hub();
-        }
-      });
-    }
-  });
-}
-</script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js">
-if(typeof auth !== 'undefined') {
-  auth.onAuthStateChanged(user => {
-    if(user) {
-      db.collection("coupleData").doc("scratchcard").get().then(doc => {
-        if (doc.exists && doc.data().sc2) {
-          localStorage.setItem("sc2", doc.data().sc2);
-          hub();
-        }
-      });
-    }
-  });
-}
-</script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js">
-if(typeof auth !== 'undefined') {
-  auth.onAuthStateChanged(user => {
-    if(user) {
-      db.collection("coupleData").doc("scratchcard").get().then(doc => {
-        if (doc.exists && doc.data().sc2) {
-          localStorage.setItem("sc2", doc.data().sc2);
-          hub();
-        }
-      });
-    }
-  });
-}
-</script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyBL0LoCSkThMXqYoW8nxlIsRt7A6YyObiI",
@@ -129,7 +94,7 @@ if(typeof auth !== 'undefined') {
 if(typeof auth !== 'undefined') {
   auth.onAuthStateChanged(user => {
     if(user) {
-      db.collection("coupleData").doc("scratchcard").get().then(doc => {
+      db.collection("userData").doc(user.uid).get().then(doc => {
         if (doc.exists && doc.data().sc2) {
           localStorage.setItem("sc2", doc.data().sc2);
           hub();
@@ -193,7 +158,7 @@ function award(id){
   const dataStr = JSON.stringify(S);
   localStorage.setItem("sc2", dataStr); 
   if(typeof auth !== 'undefined' && auth.currentUser) {
-    db.collection("coupleData").doc("scratchcard").set({sc2: dataStr}, {merge:true});
+    db.collection("userData").doc(auth.currentUser.uid).set({sc2: dataStr}, {merge:true});
   }
 } catch(_) { toast("儲存時發生錯誤"); }
   hub();
@@ -204,8 +169,10 @@ const LIST = [
   {id:"match",e:"🃏",t:"翻牌配對",d:"找出所有一樣的圖案",s:1},
   {id:"catch",e:"💖",t:"接愛心",d:"25 秒接到 18 顆",s:1},
   {id:"rps",e:"✌️",t:"猜拳大戰",d:"五戰三勝贏過我",s:1},
+  {id:"whack",e:"🔨",t:"打擊壞心情",d:"20秒內打飛15個壞情緒",s:1},
   {id:"fortune",e:"🎋",t:"今日籤詩",d:"每天一支"},
-  {id:"dice",e:"🎲",t:"命運骰子",d:"吃什麼、做什麼、真心話"}
+  {id:"dice",e:"🎲",t:"命運骰子",d:"吃什麼、做什麼、真心話"},
+  {id:"foodwheel",e:"🍔",t:"美食轉盤",d:"今天吃什麼？讓轉盤決定"}
 ];
 function hub(){
   stopAll(); $("g").hidden = true; $("hub").hidden = false;
@@ -315,12 +282,86 @@ GAMES.dice = el => {
     timers.push(iv);
   };
 };
+
+/* ---------- 美食轉盤 ---------- */
+GAMES.foodwheel = el => {
+  const foods = ["火鍋", "燒肉", "拉麵", "壽司", "義大利麵", "牛排", "早午餐", "夜市小吃", "速食", "健康餐"];
+  const WCOL = ["#ffd1dc","#ffe9a8","#cde7ff","#d9f5d0","#e6d4ff","#ffd9b8"];
+  el.innerHTML = `
+    <div class="wheelbox"><div class="ptr"></div><canvas id="fwc" width="260" height="260"></canvas></div>
+    <div class="btns" style="margin-top:10px;"><button class="b" id="fspin">轉!</button></div>
+    <div class="res" id="fres" style="text-align:center;margin-top:8px"></div>
+  `;
+  const x = document.getElementById("fwc").getContext("2d"), n = foods.length, g = 2*Math.PI/n;
+  foods.forEach((f,i)=>{
+    x.beginPath(); x.moveTo(130,130); x.arc(130,130,126,-Math.PI/2+i*g,-Math.PI/2+(i+1)*g); x.closePath();
+    x.fillStyle = WCOL[i%WCOL.length]; x.fill(); x.strokeStyle = "#fff"; x.lineWidth = 2; x.stroke();
+    x.save(); x.translate(130,130); x.rotate(-Math.PI/2+(i+.5)*g); x.font = "bold 15px sans-serif"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillStyle="#4a2230"; x.fillText(f, 80, 0); x.restore();
+  });
+  let spinning = false, wAng = 0;
+  document.getElementById("fspin").onclick = () => {
+    if(spinning) return; spinning = true;
+    let idx = Math.random()*n | 0;
+    const seg = 360/n, center = (idx+.5)*seg;
+    wAng = Math.floor(wAng/360)*360 + 360*5 + (360-center);
+    document.getElementById("fwc").style.transition = "transform 4s cubic-bezier(.12,.7,.1,1)";
+    document.getElementById("fwc").style.transform = `rotate(${wAng}deg)`;
+    document.getElementById("fres").textContent = "思考中...";
+    setTimeout(() => { spinning = false; document.getElementById("fres").textContent = `🎉 決定了！今天吃：${foods[idx]}！`; }, 4200);
+  };
+};
+
+/* ---------- 打擊壞心情 ---------- */
+GAMES.whack = el => {
+  let sc = 0, t = 20, run = false, active = -1;
+  el.innerHTML = `<div class="info">時間 <b id="wtm">20</b> 秒 ・ 打擊 <b id="wsc">0</b>/15</div>
+  <div class="mg" id="wmg" style="grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:15px;"></div>
+  <button class="b" id="wgo">開始打擊</button><div class="res" id="wrs"></div>`;
+  for(let i=0;i<9;i++){
+    const d = document.createElement("div"); d.className = "cd"; d.style.background="var(--line)"; d.style.position="relative"; d.style.overflow="hidden";
+    d.innerHTML = `<span style="opacity:0;transition:0.15s;display:block;transform:translateY(20px)">👿</span>`;
+    d.onpointerdown = () => {
+      if(!run || active!==i) return;
+      sc++; document.getElementById("wsc").textContent = sc; active = -1; d.firstChild.style.opacity = 0; d.firstChild.style.transform="translateY(20px)";
+      if(navigator.vibrate) navigator.vibrate(30);
+      const hit = document.createElement("span"); hit.textContent="💥"; hit.style.position="absolute"; hit.style.inset="0"; hit.style.display="flex"; hit.style.alignItems="center"; hit.style.justifyContent="center"; hit.style.fontSize="2rem";
+      d.appendChild(hit); setTimeout(()=>hit.remove(),300);
+    };
+    document.getElementById("wmg").appendChild(d);
+  }
+  document.getElementById("wgo").onclick = () => {
+    if(run) return; run = true; sc = 0; t = 20; document.getElementById("wrs").textContent = ""; document.getElementById("wgo").hidden = true;
+    document.getElementById("wsc").textContent = sc; document.getElementById("wtm").textContent = t;
+    timers.push(setInterval(() => {
+      if(!run) return;
+      if(active>=0) { document.getElementById("wmg").children[active].firstChild.style.opacity = 0; document.getElementById("wmg").children[active].firstChild.style.transform="translateY(20px)"; }
+      active = Math.random()*9|0;
+      const cur = document.getElementById("wmg").children[active].firstChild;
+      
+      const evils = ["👿", "壞老闆", "雷組員", "期末考"];
+      cur.textContent = evils[Math.random()*evils.length|0]; 
+      if(cur.textContent.length>1) cur.style.fontSize="1rem"; else cur.style.fontSize="1.9rem";
+      
+      cur.style.opacity = 1; cur.style.transform = "translateY(0)";
+      setTimeout(()=> { if(run && cur) {cur.style.opacity=0; cur.style.transform="translateY(20px)";} }, 750);
+    }, 850));
+    timers.push(setInterval(() => {
+      if(--t<=0){
+        run = false; stopAll(); document.getElementById("wgo").hidden = false; document.getElementById("wgo").textContent = "再玩一次"; active=-1;
+        Array.from(document.getElementById("wmg").children).forEach(c=>{c.firstChild.style.opacity=0; c.firstChild.style.transform="translateY(20px)";});
+        if(sc>=15){ document.getElementById("wrs").textContent = `🎉 成功打擊 ${sc} 個壞東西！`; award("whack"); }
+        else document.getElementById("wrs").textContent = `只打了 ${sc} 個，差一點！再試一次`;
+      } else document.getElementById("wtm").textContent = t;
+    }, 1000));
+  };
+};
+
 hub();
 
 if(typeof auth !== 'undefined') {
   auth.onAuthStateChanged(user => {
     if(user) {
-      db.collection("coupleData").doc("scratchcard").get().then(doc => {
+      db.collection("userData").doc(user.uid).get().then(doc => {
         if (doc.exists && doc.data().sc2) {
           localStorage.setItem("sc2", doc.data().sc2);
           hub();

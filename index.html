@@ -71,51 +71,9 @@ nav a.active { background: var(--accent); color: #fff; }
 </style>
 
 <!-- Firebase Setup -->
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js">
-if(typeof auth !== 'undefined') {
-  auth.onAuthStateChanged(user => {
-    if(user) {
-      db.collection("coupleData").doc("scratchcard").get().then(doc => {
-        if (doc.exists && doc.data().sc2) {
-          Object.assign(ST, JSON.parse(doc.data().sc2));
-          localStorage.setItem("sc2", doc.data().sc2);
-          chips(); if (document.getElementById("col") && !document.getElementById("col").hidden) colGrid(); checkAch(); applyTheme();
-        }
-      });
-    }
-  });
-}
-</script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js">
-if(typeof auth !== 'undefined') {
-  auth.onAuthStateChanged(user => {
-    if(user) {
-      db.collection("coupleData").doc("scratchcard").get().then(doc => {
-        if (doc.exists && doc.data().sc2) {
-          Object.assign(ST, JSON.parse(doc.data().sc2));
-          localStorage.setItem("sc2", doc.data().sc2);
-          chips(); if (document.getElementById("col") && !document.getElementById("col").hidden) colGrid(); checkAch(); applyTheme();
-        }
-      });
-    }
-  });
-}
-</script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js">
-if(typeof auth !== 'undefined') {
-  auth.onAuthStateChanged(user => {
-    if(user) {
-      db.collection("coupleData").doc("scratchcard").get().then(doc => {
-        if (doc.exists && doc.data().sc2) {
-          Object.assign(ST, JSON.parse(doc.data().sc2));
-          localStorage.setItem("sc2", doc.data().sc2);
-          chips(); if (document.getElementById("col") && !document.getElementById("col").hidden) colGrid(); checkAch(); applyTheme();
-        }
-      });
-    }
-  });
-}
-</script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyBL0LoCSkThMXqYoW8nxlIsRt7A6YyObiI",
@@ -149,7 +107,7 @@ if(typeof auth !== 'undefined') {
 if(typeof auth !== 'undefined') {
   auth.onAuthStateChanged(user => {
     if(user) {
-      db.collection("coupleData").doc("scratchcard").get().then(doc => {
+      db.collection("userData").doc(user.uid).get().then(doc => {
         if (doc.exists && doc.data().sc2) {
           Object.assign(ST, JSON.parse(doc.data().sc2));
           localStorage.setItem("sc2", doc.data().sc2);
@@ -296,7 +254,7 @@ const save = () => {
     const dataStr = JSON.stringify(ST);
     localStorage.setItem("sc2", dataStr);
     if(typeof auth !== 'undefined' && auth.currentUser) {
-      db.collection("coupleData").doc("scratchcard").set({sc2: dataStr}, {merge:true}).catch(e=>console.log(e));
+      db.collection("userData").doc(auth.currentUser.uid).set({sc2: dataStr}, {merge:true}).catch(e=>console.log(e));
     }
   }catch(_){}
 };
@@ -529,7 +487,7 @@ login(); applyTheme(); applyText(); newCard(); checkAch(); if(loginMsg) setTimeo
 if(typeof auth !== 'undefined') {
   auth.onAuthStateChanged(user => {
     if(user) {
-      db.collection("coupleData").doc("scratchcard").get().then(doc => {
+      db.collection("userData").doc(user.uid).get().then(doc => {
         if (doc.exists && doc.data().sc2) {
           Object.assign(ST, JSON.parse(doc.data().sc2));
           localStorage.setItem("sc2", doc.data().sc2);
