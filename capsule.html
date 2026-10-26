@@ -97,9 +97,16 @@ h1 { font-size: 1.75rem; margin: 4px 0; }
       if (!user) {
         window.location.replace('login.html');
       } else {
-        const adminLink = document.getElementById('admin-link');
-        if (adminLink && user.email === 'tony0930508440@gmail.com') {
-          adminLink.style.display = 'inline-block';
+        const showAdmin = () => {
+          const adminLink = document.getElementById('admin-link');
+          if (adminLink && user.email === 'tony0930508440@gmail.com') {
+            adminLink.style.display = 'inline-block';
+          }
+        };
+        if(document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', showAdmin);
+        } else {
+          showAdmin();
         }
         if (window.location.pathname.endsWith('admin.html') && user.email !== 'tony0930508440@gmail.com') {
           alert('只有定宇本寶才能進入後台喔！');
