@@ -233,9 +233,11 @@ GAMES.dice = el => {
 (async () => {
   const user = await authReady; if(!user) return;
   await cloudSync.pull();
-  document.documentElement.dataset.theme = THEMES[load().theme||0] || "";
-  hub();
+  const theme = () => { document.documentElement.dataset.theme = THEMES[load().theme||0] || ""; };
+  theme(); hub();
+  cloudSync.listen(() => { theme(); if($("g").hidden) hub(); });   // 正在玩遊戲時不重畫
 })();
+
 </script>
 </body>
 </html>

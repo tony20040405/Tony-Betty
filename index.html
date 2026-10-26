@@ -412,17 +412,31 @@ function applySite(site){
   if(!Array.isArray(cfg.prizes) || !cfg.prizes.length) cfg.prizes = DEFAULT.prizes;
   if(site.dates){ if(site.dates.start) cfg.startDate = site.dates.start; if(site.dates.anniversary) cfg.anniversary = site.dates.anniversary; }
 }
+const defaultST = () => ({days:{},got:{},pending:null,sp:{},recent:[],streak:{d:"",n:0},bonus:{d:"",n:0},miss:0,ach:{},wheel:{},spins:0,theme:0});
+function reloadST(){
+  let saved = {}; try{ saved = JSON.parse(localStorage.getItem("sc2")||"{}"); }catch(_){}
+  Object.keys(ST).forEach(k => delete ST[k]);
+  Object.assign(ST, defaultST(), saved);
+  localStorage.setItem("sc2", JSON.stringify(ST));   // 統一格式,避免兩台裝置互相觸發存檔
+}
 (async () => {
   const user = await authReady; if(!user) return;
   const [site] = await Promise.all([loadSiteConfig(), cloudSync.pull()]);
   applySite(site);
-  let saved = {}; try{ saved = JSON.parse(localStorage.getItem("sc2")||"{}"); }catch(_){}
-  Object.keys(ST).forEach(k => delete ST[k]);
-  Object.assign(ST, {days:{},got:{},pending:null,sp:{},recent:[],streak:{d:"",n:0},bonus:{d:"",n:0},miss:0,ach:{},wheel:{},spins:0,theme:0}, saved);
+  reloadST();
   login(); applyTheme(); applyText(); newCard(); checkAch();
   if(loginMsg) setTimeout(()=>toast(loginMsg),600);
   save();
+  /* 別台裝置存檔後,這台自動更新(正在刮的卡不打斷) */
+  cloudSync.listen(() => {
+    reloadST(); applyTheme(); chips(); checkAch();
+    if(!revealed && moves===0) newCard(); else if(revealed) nextBtn.disabled = left()<=0;
+    if(!$("col").hidden) colGrid();
+    if(!$("wh").hidden) wheelUI();
+    toast("☁️ 已同步另一台裝置的進度");
+  });
 })();
+
 </script>
 </body>
 </html>
