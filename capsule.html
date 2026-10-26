@@ -113,10 +113,10 @@ h1 { font-size: 1.75rem; margin: 4px 0; }
 
 
 <h1>🕰️ 定宇的時光膠囊</h1>
-<p class="sub">即使哥哥去當兵了，我的心也一直陪在寶鼻身邊 💖</p>
+<p class="sub">即使本寶去當兵了，我的心也一直陪在寶鼻身邊 💖</p>
 
 <section class="panel">
-  <h2>🎖️ 哥哥回歸倒數</h2>
+  <h2>🎖️ 本寶回歸倒數</h2>
   <div class="countdown-text">距離定宇退伍還有 <span id="days-left" style="color:var(--accent);font-size:1.5rem;">--</span> 天！</div>
   <div class="progress-container">
     <div class="progress-bar" id="progress-bar"></div>
@@ -133,7 +133,7 @@ h1 { font-size: 1.75rem; margin: 4px 0; }
 
 <section class="panel">
   <h2>🚑 寶鼻專屬急救包 (Open When...)</h2>
-  <p class="sub">當哥哥不在身邊，遇到這些情況時請點開：</p>
+  <p class="sub">當本寶不在身邊，遇到這些情況時請點開：</p>
   <div class="open-when-grid" id="ow-grid">
   </div>
 </section>
@@ -142,7 +142,7 @@ h1 { font-size: 1.75rem; margin: 4px 0; }
   <div class="modal-content">
     <h3 id="modal-title"></h3>
     <p id="modal-body"></p>
-    <button class="close-btn" onclick="document.getElementById('modal').classList.remove('show')">收下哥哥的抱抱 🤗</button>
+    <button class="close-btn" onclick="document.getElementById('modal').classList.remove('show')">收下本寶的抱抱 🤗</button>
   </div>
 </div>
 
@@ -155,7 +155,7 @@ const dailyMessages = [
   "今天的天氣如何呢？出門記得多帶件外套，不要讓我擔心妳感冒了。",
   "寶寶～在軍中真的很難熬，但我只要想到妳可愛的臉，就覺得充滿動力了！",
   "偷偷跟妳說，今天做操的時候我又在想妳了，好想趕快放假回去給妳一個大大的抱抱。",
-  "如果今天上課或工作覺得累，記得給自己買一杯好喝的飲料！哥哥請客（記在帳上等我回去結）！",
+  "如果今天上課或工作覺得累，記得給自己買一杯好喝的飲料！本寶請客（記在帳上等我回去結）！",
   "我是不是很煩，就算當兵還是要每天跟妳說一次：我超級愛妳的！",
   "寶寶今天也要加油喔！妳是最棒的，如果有誰惹妳生氣，等我回去幫妳揍他！",
   "倒數的日子又少了一天，好想捏捏妳的臉頰，今晚要夢到我喔 💤"
@@ -164,11 +164,11 @@ const dailyMessages = [
 const openWhenData = [
   {
     icon: "🩸", title: "當妳那個來、肚子痛痛的時候",
-    content: "寶鼻～肚子又痛痛了嗎？🥺\n\n對不起哥哥現在沒辦法親自幫妳敷熱水袋、也沒辦法過去給妳抱抱。妳一定要乖乖喝熱水，把暖暖包貼在肚子上，不要硬撐知道嗎？\n\n想著哥哥的手正在幫妳揉揉肚子... 痛痛飛走！辛苦寶鼻了，等我回去一定好好補償妳，愛妳喔！"
+    content: "寶鼻～肚子又痛痛了嗎？🥺\n\n對不起本寶現在沒辦法親自幫妳敷熱水袋、也沒辦法過去給妳抱抱。妳一定要乖乖喝熱水，把暖暖包貼在肚子上，不要硬撐知道嗎？\n\n想著本寶的手正在幫妳揉揉肚子... 痛痛飛走！辛苦寶鼻了，等我回去一定好好補償妳，愛妳喔！"
   },
   {
     icon: "😡", title: "當妳遇到雷組員 / 心情很煩的時候",
-    content: "是哪個白目惹我們家小寶生氣了？！😡\n\n深呼吸～不要拿別人的愚蠢來懲罰自己可愛的臉蛋。妳已經做得很好了，真的是他們太雷！\n\n妳可以盡情在心裡罵他們（或是去我們的 LINE 留言罵，我放假一定一條一條看）。不管怎樣，哥哥永遠站在妳這邊，妳是最棒的！消消氣，去吃點好吃的甜點吧！"
+    content: "是哪個白目惹我們家小寶生氣了？！😡\n\n深呼吸～不要拿別人的愚蠢來懲罰自己可愛的臉蛋。妳已經做得很好了，真的是他們太雷！\n\n妳可以盡情在心裡罵他們（或是去我們的 LINE 留言罵，我放假一定一條一條看）。不管怎樣，本寶永遠站在妳這邊，妳是最棒的！消消氣，去吃點好吃的甜點吧！"
   },
   {
     icon: "😢", title: "當妳覺得孤單、特別想我的時候",
@@ -176,7 +176,7 @@ const openWhenData = [
   },
   {
     icon: "💤", title: "當妳半夜睡不著的時候",
-    content: "小傻瓜，怎麼還不睡覺？又在滑 Threads 還是看短劇了嗎？😆\n\n乖乖放下手機，閉上眼睛。想想我們之後要去哪裡約會、要去吃什麼好吃的火鍋。或者想想哥哥穿軍服帥氣的樣子（？\n\n我在軍中也會在夢裡去找妳的。快點睡吧，晚安寶鼻，愛妳喔 💖"
+    content: "小傻瓜，怎麼還不睡覺？又在滑 Threads 還是看短劇了嗎？😆\n\n乖乖放下手機，閉上眼睛。想想我們之後要去哪裡約會、要去吃什麼好吃的火鍋。或者想想本寶穿軍服帥氣的樣子（？\n\n我在軍中也會在夢裡去找妳的。快點睡吧，晚安寶鼻，愛妳喔 💖"
   }
 ];
 
