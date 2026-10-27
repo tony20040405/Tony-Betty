@@ -435,6 +435,24 @@ function watchGrant(user){
     toast(`🎁 定宇送你 ${add} 張額外刮刮卡!`);
   }, e => console.warn("讀取額外刮刮卡失敗", e));
 }
+/* 默契問答獎勵:每答對 quizEvery 題,送 1 張今天可刮的卡 */
+function watchQuizReward(user, site){
+  if(isAdminUser(user)) return;
+  const bank = parseQuiz(site.quiz), every = Number(site.quizEvery)||3;
+  let picks = {}, ans = {};
+  const check = () => {
+    let ok = 0;
+    Object.keys(picks).forEach(i => { const it = bank[i]; if(!it) return; const a = ans[i] !== undefined ? Number(ans[i]) : it.a; if(a != null && Number(picks[i]) === a) ok++; });
+    const earned = Math.floor(ok / every), add = earned - Number(ST.quizGiven||0);
+    if(add <= 0) return;
+    ST.bonus = {d:tk(), n:(ST.bonus.d===tk()?ST.bonus.n:0)+add};
+    ST.quizGiven = earned; save(); chips();
+    if(!revealed && moves===0) newCard(); else if(revealed) nextBtn.disabled = left()<=0;
+    toast(`🧠 默契問答答對 ${earned*every} 題,送你 ${add} 張刮刮卡!`);
+  };
+  db.collection("userData").doc(user.uid).onSnapshot(s => { picks = (s.exists && s.data().quiz) || {}; check(); }, () => {});
+  db.collection("coupleData").doc("quiz").onSnapshot(s => { ans = (s.exists && s.data().answers) || {}; check(); }, () => {});
+}
 (async () => {
   const user = await authReady; if(!user) return;
   const [site] = await Promise.all([loadSiteConfig(), cloudSync.pull()]);
@@ -443,7 +461,7 @@ function watchGrant(user){
   login(); applyTheme(); applyText(); newCard(); checkAch();
   if(loginMsg) setTimeout(()=>toast(loginMsg),600);
   save();
-  watchGrant(user);
+  watchGrant(user); watchQuizReward(user, site);
   /* 別台裝置存檔後,這台自動更新(正在刮的卡不打斷) */
   cloudSync.listen(() => {
     reloadST(); applyTheme(); chips(); checkAch();
