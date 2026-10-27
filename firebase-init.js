@@ -31,7 +31,12 @@ const authReady = new Promise(resolve => {
 });
 
 /* 網站內容 = 預設值 + 雲端後台設定(coupleData/config) */
-async function loadSiteConfig() {
+let _sitePromise = null;
+function loadSiteConfig(force) {                      // 同一頁只讀一次雲端設定;force=true 重新讀取
+  if (force || !_sitePromise) _sitePromise = _loadSiteConfig();
+  return _sitePromise.then(c => JSON.parse(JSON.stringify(c)));
+}
+async function _loadSiteConfig() {
   const base = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
   try {
     const doc = await db.collection('coupleData').doc('config').get();
@@ -147,3 +152,38 @@ async function checkLetters(user) {
   next();
 }
 authReady.then(u => { if (u) checkLetters(u); });
+
+/* ---------- 入伍前鎖定:除了刮刮樂、遊樂園,其餘頁面要到入伍當天(armyStart 00:00)才開放;定宇的帳號不受限 ---------- */
+const LOCK_PAGES = ['timeline', 'daily', 'capsule', 'games', 'quiz', 'army'];
+const PAGE_NAME = (location.pathname.split('/').pop() || 'index.html').replace('.html', '') || 'index';
+const IS_LOCK_PAGE = LOCK_PAGES.includes(PAGE_NAME);
+if (IS_LOCK_PAGE) document.documentElement.style.visibility = 'hidden';   // 先藏起來,避免鎖定頁面閃一下
+authReady.then(async user => {
+  try {
+    if (!user || isAdminUser(user) || IS_LOGIN_PAGE || IS_ADMIN_PAGE) return;
+    const site = await loadSiteConfig();
+    const [y, m, d] = site.dates.armyStart.split('-').map(Number), start = new Date(y, m - 1, d);
+    if (site.lockUntilArmy === false || Date.now() >= start) return;
+    await new Promise(r => whenDomReady(r));
+    document.querySelectorAll('nav a').forEach(a => {
+      if (LOCK_PAGES.includes((a.getAttribute('href') || '').replace('.html', ''))) a.textContent += ' 🔒';
+    });
+    if (!IS_LOCK_PAGE) return;
+    const days = Math.ceil((start - Date.now()) / 864e5);
+    const o = document.createElement('div');
+    o.style.cssText = 'position:fixed;inset:0;z-index:90;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;background:linear-gradient(135deg,var(--b1,#ffe3ec),var(--b2,#ffd0e4),var(--b3,#e6dcff));color:var(--fg,#4a2230);font-family:inherit';
+    const mk = (tag, txt, css) => { const e = document.createElement(tag); e.textContent = txt; if (css) e.style.cssText = css; return e; };
+    o.append(
+      mk('div', '🔒', 'font-size:3.5rem'),
+      mk('h2', '這裡還沒開放喔', 'margin:0;color:var(--accent,#e8557a)'),
+      mk('p', '等定宇入伍那天,這個區域就會自動開啟 💖', 'margin:0;line-height:1.7'),
+      mk('p', '還有 ' + days + ' 天', 'margin:0;font-size:1.6rem;font-weight:bold;color:var(--accent,#e8557a)')
+    );
+    const row = document.createElement('div'); row.style.cssText = 'display:flex;gap:10px;margin-top:8px';
+    [['去刮刮樂 🎟️', 'index.html'], ['去遊樂園 🎡', 'park.html']].forEach(([t, h]) => {
+      const a = mk('a', t, 'background:var(--accent,#e8557a);color:#fff;text-decoration:none;padding:10px 20px;border-radius:999px;font-weight:bold');
+      a.href = h; row.appendChild(a);
+    });
+    o.appendChild(row); document.body.appendChild(o);
+  } finally { document.documentElement.style.visibility = ''; }
+});

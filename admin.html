@@ -72,7 +72,7 @@
   const say = m => { $('status').textContent = m; };
   const show = cfg => { $('config-json').value = JSON.stringify(cfg, null, 2); };
 
-  async function load() { say('讀取中...'); show(await loadSiteConfig()); say(''); }
+  async function load() { say('讀取中...'); show(await loadSiteConfig(true)); say(''); }
   await load();
 
   /* 送寶鼻額外刮刮卡:累加 coupleData/bonus.total,寶鼻的網頁會偵測差額並加到她今天的張數 */
