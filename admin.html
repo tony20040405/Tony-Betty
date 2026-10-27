@@ -118,6 +118,7 @@
     catch (e) { say('❌ JSON 格式有錯誤,請檢查是否少了引號或逗號:' + e.message); return; }
     if (!data.scratchcard || !Array.isArray(data.scratchcard.prizes) || !data.scratchcard.prizes.length) { say('❌ scratchcard.prizes 不能是空的'); return; }
     if (!data.dates || !data.dates.armyStart || !data.dates.armyEnd) { say('❌ dates 裡需要 armyStart / armyEnd'); return; }
+    if (Array.isArray(data.choices)) data.choices = data.choices.map(c => Array.isArray(c) ? c.join('|') : c);   // Firestore 不支援巢狀陣列
     say('儲存中...');
     try {
       await db.collection('coupleData').doc('config').set(data);
