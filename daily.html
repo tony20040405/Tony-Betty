@@ -26,6 +26,9 @@ textarea{height:90px;resize:none}
   <a href="park.html">遊樂園</a>
   <a href="timeline.html">我們的故事</a>
   <a href="daily.html" class="active">每日問答</a>
+  <a href="games.html">小遊戲</a>
+  <a href="quiz.html">默契問答</a>
+  <a href="army.html">當兵倒數</a>
   <a href="capsule.html">時光膠囊</a>
   <a href="admin.html" style="display:none">後台管理⚙️</a>
   <a href="#" class="logout" onclick="auth.signOut(); return false;">登出🚪</a>
@@ -44,12 +47,17 @@ textarea{height:90px;resize:none}
   const user = await authReady; if (!user) return;
   const site = await loadSiteConfig();
   const $ = id => document.getElementById(id);
-  const qs = (site.dailyQuestions && site.dailyQuestions.length) ? site.dailyQuestions : DEFAULT_CONFIG.dailyQuestions;
+  const qa = (site.qaBank && site.qaBank.length) ? site.qaBank : site.dailyQuestions;
+  const ch = site.choices || [];
   if (site.names) { $('lb-boy').textContent = '👦 ' + site.names.boy + '的回答:'; $('lb-girl').textContent = '👧 ' + site.names.girl + '的回答:'; }
 
   const t = new Date();
   const dayNum = Math.floor(Date.UTC(t.getFullYear(), t.getMonth(), t.getDate()) / 864e5);   // 用本地日期,不受 UTC 影響
-  $('question').textContent = 'Q: ' + qs[dayNum % qs.length];
+  // 偶數日:深度問答;奇數日:二選一(每日約半年不重複)
+  const half = Math.floor(dayNum / 2);
+  $('question').textContent = (dayNum % 2 === 0 || !ch.length)
+    ? 'Q: ' + qa[half % qa.length]
+    : '二選一:' + ch[half % ch.length][0] + ' 還是 ' + ch[half % ch.length][1] + '?說說為什麼';
   const dateStr = t.toLocaleDateString('sv');                                                  // YYYY-MM-DD(本地時間)
   const docRef = db.collection('daily').doc(dateStr);
 

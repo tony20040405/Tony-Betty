@@ -22,6 +22,9 @@
   <a href="park.html">遊樂園</a>
   <a href="timeline.html">我們的故事</a>
   <a href="daily.html">每日問答</a>
+  <a href="games.html">小遊戲</a>
+  <a href="quiz.html">默契問答</a>
+  <a href="army.html">當兵倒數</a>
   <a href="capsule.html">時光膠囊</a>
   <a href="admin.html" class="active" style="display:none">後台管理⚙️</a>
   <a href="#" class="logout" onclick="auth.signOut(); return false;">登出🚪</a>
@@ -53,6 +56,14 @@
   <p class="hint">累計已送出:<b id="bonus-total">0</b> 張</p>
   <p id="bonus-status" style="font-weight:bold;color:var(--accent);min-height:1.2em"></p>
 </div>
+
+<div class="panel" style="margin-top:20px">
+  <h2>🧠 默契問答:填妳的答案</h2>
+  <p class="hint">每題選出定宇的真正答案(已預填歷史題),可再寫一句「揭曉時想說的話」。寶鼻答完該題後才會看到結果。</p>
+  <div id="quiz-list"></div>
+  <button id="btn-quiz" style="margin-top:12px">儲存答案 ☁️</button>
+  <p id="quiz-status" style="font-weight:bold;color:var(--accent);min-height:1.2em"></p>
+</div>
 <script>
 (async () => {
   const user = await authReady;
@@ -75,6 +86,26 @@
       await bonusRef.set({ total: firebase.firestore.FieldValue.increment(n), updatedAt: Date.now(), lastN: n }, { merge: true });
       out.textContent = '✅ 已送出 ' + n + ' 張!';
     } catch (e) { out.textContent = '送出失敗:' + e.message; }
+  };
+
+  /* 默契問答:定宇填答案 */
+  const quizBank = parseQuiz((await loadSiteConfig()).quiz), quizRef = db.collection('coupleData').doc('quiz');
+  let qd = {}; try { const s = await quizRef.get(); qd = s.exists ? s.data() : {}; } catch (e) { console.warn(e); }
+  const qAns = qd.answers || {}, qNotes = qd.notes || {}, qSel = [], qNote = [];
+  quizBank.forEach((it, i) => {
+    const row = document.createElement('div'); row.style.marginBottom = '12px';
+    const l = document.createElement('div'); l.textContent = (i + 1) + '. ' + it.q; l.style.fontWeight = 'bold';
+    const sel = document.createElement('select'); sel.style.cssText = 'width:100%;padding:8px;margin:4px 0;border-radius:10px;border:2px solid var(--line);background:var(--b1);color:var(--fg)';
+    sel.add(new Option('(還沒填)', '')); it.o.forEach((t, j) => sel.add(new Option(t, j)));
+    const cur = qAns[i] !== undefined ? qAns[i] : it.a; sel.value = cur == null ? '' : String(cur);
+    const nt = document.createElement('input'); nt.placeholder = '揭曉時想說的話(選填)'; nt.value = qNotes[i] || '';
+    qSel.push(sel); qNote.push(nt); row.append(l, sel, nt); $('quiz-list').appendChild(row);
+  });
+  $('btn-quiz').onclick = async () => {
+    const answers = {}, notes = {};
+    qSel.forEach((s, i) => { if (s.value !== '') answers[i] = Number(s.value); if (qNote[i].value.trim()) notes[i] = qNote[i].value.trim(); });
+    try { await quizRef.set({ answers, notes, updatedAt: Date.now() }); $('quiz-status').textContent = '✅ 已儲存 ' + Object.keys(answers).length + ' 題答案'; }
+    catch (e) { $('quiz-status').textContent = '儲存失敗:' + e.message; }
   };
 
   $('btn-reload').onclick = load;

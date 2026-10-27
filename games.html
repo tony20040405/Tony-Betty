@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>小遊戲 🎮</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+<script src="site-config.js"></script>
+<script src="firebase-init.js"></script>
+<style>
+.card{font-size:1.15rem;line-height:1.7;padding:18px;background:rgba(232,85,122,.08);border-left:4px solid var(--accent);border-radius:12px;min-height:80px}
+.task{font-size:1.1rem;line-height:1.6;margin:8px 0 14px}
+.week{color:var(--muted);font-size:.85rem}
+.done{color:var(--accent);font-weight:bold;min-height:1.2em}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html">刮刮樂</a>
+  <a href="park.html">遊樂園</a>
+  <a href="timeline.html">我們的故事</a>
+  <a href="daily.html">每日問答</a>
+  <a href="games.html" class="active">小遊戲</a>
+  <a href="quiz.html">默契問答</a>
+  <a href="army.html">當兵倒數</a>
+  <a href="capsule.html">時光膠囊</a>
+  <a href="admin.html" style="display:none">後台管理⚙️</a>
+  <a href="#" class="logout" onclick="auth.signOut(); return false;">登出🚪</a>
+</nav>
+<h1>🎮 小遊戲與任務</h1>
+<p class="sub">定宇不在的時候,陪妳的小東西 💖</p>
+<section class="panel">
+  <h2>📅 本週任務</h2>
+  <div class="week" id="wk"></div>
+  <div class="task" id="task">讀取中...</div>
+  <button id="finish">我完成了 ✅</button>
+  <p class="done" id="doneMsg"></p>
+</section>
+<section class="panel" style="text-align:center">
+  <h2 style="text-align:left">🃏 難過時抽一張</h2>
+  <div class="card" id="card">想我了、心情不好的時候,按下面的按鈕。</div>
+  <button id="draw" style="margin-top:14px">抽一張 💌</button>
+</section>
+<script>
+(async () => {
+  const user = await authReady; if (!user) return;
+  const site = await loadSiteConfig();
+  const $ = id => document.getElementById(id);
+  const [y, m, d] = site.dates.armyStart.split('-').map(Number);
+  const weeks = Math.max(0, Math.floor((Date.now() - new Date(y, m - 1, d)) / (7 * 864e5)));
+  const list = site.weekly || [], i = weeks % list.length, key = 'w' + weeks;
+  $('wk').textContent = '第 ' + (weeks + 1) + ' 週';
+  $('task').textContent = list[i] || '好好照顧自己';
+  const ref = db.collection('userData').doc(user.uid);
+  let done = {};
+  try { const s = await ref.get(); done = (s.exists && s.data().weekly) || {}; } catch (e) { console.warn(e); }
+  const mark = () => { $('finish').disabled = !!done[key]; $('doneMsg').textContent = done[key] ? '🎉 這週完成了,好棒!' : ''; };
+  mark();
+  $('finish').onclick = async () => {
+    done[key] = true; mark();
+    try { await ref.set({ weekly: { [key]: true } }, { merge: true }); } catch (e) { $('doneMsg').textContent = '⚠️ 儲存失敗:' + e.message; }
+  };
+  const cheer = site.cheer || [];
+  $('draw').onclick = () => { $('card').textContent = cheer[Math.floor(Math.random() * cheer.length)] || '我愛妳'; };
+})();
+</script>
+</body>
+</html>

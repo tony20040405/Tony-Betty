@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>當兵倒數 🎖️</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+<script src="site-config.js"></script>
+<script src="firebase-init.js"></script>
+<style>
+.big{font-size:3.4rem;font-weight:800;color:var(--accent);line-height:1}.unit{font-size:1rem;color:var(--muted)}
+.clock{font-size:1.3rem;font-weight:bold;margin:8px 0}.bar{height:20px;background:var(--line);border-radius:999px;overflow:hidden;margin:14px 0 6px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff9ab5,var(--accent));transition:width 1s}
+.ms{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.ms span{padding:6px 12px;border-radius:999px;border:1.5px solid var(--line);font-size:.85rem;color:var(--muted)}
+.ms span.on{background:var(--accent);color:#fff;border-color:var(--accent)}.stat{display:flex;justify-content:space-around;text-align:center}.stat b{display:block;font-size:1.4rem;color:var(--accent)}
+.panel{text-align:center}.msg{text-align:left;line-height:1.6;padding:14px;background:rgba(232,85,122,.08);border-left:4px solid var(--accent);border-radius:12px}</style>
+</head>
+<body>
+<nav>
+  <a href="index.html">刮刮樂</a>
+  <a href="park.html">遊樂園</a>
+  <a href="timeline.html">我們的故事</a>
+  <a href="daily.html">每日問答</a>
+  <a href="games.html">小遊戲</a>
+  <a href="quiz.html">默契問答</a>
+  <a href="army.html" class="active">當兵倒數</a>
+  <a href="capsule.html">時光膠囊</a>
+  <a href="admin.html" style="display:none">後台管理⚙️</a>
+  <a href="#" class="logout" onclick="auth.signOut(); return false;">登出🚪</a>
+</nav>
+<h1>🎖️ 當兵倒數專區</h1>
+<p class="sub" id="sub"></p>
+<section class="panel"><div class="unit" id="lbl"></div><div class="big" id="days">--</div><div class="unit">天</div>
+  <div class="clock" id="clock"></div><div class="bar"><i id="bar"></i></div><div class="unit" id="pct"></div></section>
+<section class="panel"><div class="stat"><div><b id="passed">-</b>已過天數</div><div><b id="total">-</b>總天數</div><div><b id="weeks">-</b>剩餘週數</div></div></section>
+<section class="panel"><h2>🏅 里程碑</h2><div class="ms" id="ms"></div></section>
+<section class="panel" id="leaveBox" hidden><h2>🏠 下次放假</h2><div id="leave"></div></section>
+<section class="panel"><h2>💌 今日一句話</h2><div class="msg" id="msg"></div></section>
+<script>
+(async () => {
+  const user = await authReady; if (!user) return;
+  const site = await loadSiteConfig(), $ = id => document.getElementById(id);
+  const P = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+  const S = P(site.dates.armyStart), E = P(site.dates.armyEnd), DAY = 864e5, total = Math.round((E - S) / DAY);
+  const MS = [[10,'十分之一 🌱'],[25,'四分之一 🌸'],[50,'過半了 🎉'],[75,'四分之三 🚀'],[90,'最後衝刺 🔥'],[100,'退伍!🎖️']];
+  $('total').textContent = total;
+  const leaves = ((site.army && site.army.leaves) || []).map(P).sort((a, b) => a - b);
+  const now0 = new Date(); const dn = Math.floor(Date.UTC(now0.getFullYear(), now0.getMonth(), now0.getDate()) / DAY);
+  const dm = (site.capsule && site.capsule.dailyMessages) || [];
+  $('msg').textContent = dm.length ? dm[dn % dm.length] : '今天也很愛妳 💖';
+  function tick() {
+    const now = new Date(); let target, pct, st;
+    if (now < S) { st = 0; target = S; pct = 0; $('lbl').textContent = '距離入伍還有'; $('sub').textContent = '出發前的每一天都要好好珍惜 💖'; }
+    else if (now >= E) { st = 2; pct = 100; $('lbl').textContent = '🎉 已經平安退伍'; $('sub').textContent = '謝謝寶鼻一路等我 💖'; }
+    else { st = 1; target = E; pct = (now - S) / (E - S) * 100; $('lbl').textContent = '距離退伍還有'; $('sub').textContent = '每過一秒,都離見面更近一點 💖'; }
+    if (st === 2) { $('days').textContent = 0; $('clock').textContent = ''; }
+    else { const ms = target - now, dd = Math.floor(ms / DAY), h = Math.floor(ms % DAY / 36e5), mi = Math.floor(ms % 36e5 / 6e4), se = Math.floor(ms % 6e4 / 1e3);
+      $('days').textContent = dd; $('clock').textContent = [h, mi, se].map(n => String(n).padStart(2, '0')).join(' : '); $('weeks').textContent = Math.ceil(dd / 7); }
+    if (st === 2) $('weeks').textContent = 0;
+    $('passed').textContent = st === 0 ? 0 : Math.min(total, Math.floor((now - S) / DAY));
+    $('bar').style.width = pct + '%'; $('pct').textContent = '已完成 ' + pct.toFixed(2) + '%';
+    $('ms').textContent = ''; MS.forEach(([p, t]) => { const s = document.createElement('span'); s.textContent = p + '% ' + t; if (pct >= p) s.className = 'on'; $('ms').appendChild(s); });
+    const nx = leaves.find(l => l >= new Date(now.getFullYear(), now.getMonth(), now.getDate()));
+    if (nx) { $('leaveBox').hidden = false; const dd = Math.round((nx - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / DAY);
+      $('leave').textContent = nx.toLocaleDateString('zh-TW') + (dd ? '(還有 ' + dd + ' 天)' : '(就是今天!)'); }
+  }
+  tick(); setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>

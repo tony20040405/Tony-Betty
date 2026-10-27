@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>默契問答 🧠</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+<script src="site-config.js"></script>
+<script src="firebase-init.js"></script>
+<style>
+.q{margin-bottom:18px}.q h3{margin:0 0 4px;font-size:1.05rem}.n{color:var(--muted);font-size:.8rem}
+.opt{display:block;width:100%;text-align:left;margin:6px 0;box-shadow:none}
+.opt.ok{background:#3aa66a;color:#fff;border-color:#3aa66a}.opt.bad{background:#999;color:#fff;border-color:#999}
+.note{margin-top:6px;padding:8px 10px;border-radius:10px;background:rgba(232,85,122,.1);font-size:.92rem}
+#score{font-size:1.15rem;font-weight:bold;color:var(--accent)}</style>
+</head>
+<body>
+<nav>
+  <a href="index.html">刮刮樂</a>
+  <a href="park.html">遊樂園</a>
+  <a href="timeline.html">我們的故事</a>
+  <a href="daily.html">每日問答</a>
+  <a href="games.html">小遊戲</a>
+  <a href="quiz.html" class="active">默契問答</a>
+  <a href="army.html">當兵倒數</a>
+  <a href="capsule.html">時光膠囊</a>
+  <a href="admin.html" style="display:none">後台管理⚙️</a>
+  <a href="#" class="logout" onclick="auth.signOut(); return false;">登出🚪</a>
+</nav>
+<h1>🧠 默契問答</h1>
+<p class="sub">猜猜定宇的答案!每週會解鎖新題目,答案由定宇揭曉 💖</p>
+<section class="panel" style="text-align:center"><div id="score">讀取中...</div><div class="n" id="unlock"></div></section>
+<section class="panel" id="list"></section>
+<script>
+(async () => {
+  const user = await authReady; if (!user) return;
+  const site = await loadSiteConfig(), $ = id => document.getElementById(id);
+  const bank = parseQuiz(site.quiz);
+  const [y, m, d] = site.dates.armyStart.split('-').map(Number);
+  const weeks = Math.max(0, Math.floor((Date.now() - new Date(y, m - 1, d)) / (7 * 864e5)));
+  const open = Math.min(bank.length, Math.ceil(bank.length * (weeks + 1) / 26));
+  const ref = db.collection('userData').doc(user.uid); let picks = {}, ans = {}, notes = {};
+  try { const s = await ref.get(); picks = (s.exists && s.data().quiz) || {}; } catch (e) { console.warn(e); }
+  const render = () => {
+    const list = $('list'); list.textContent = ''; let right = 0, rev = 0;
+    for (let i = 0; i < open; i++) {
+      const it = bank[i], a = ans[i] !== undefined ? Number(ans[i]) : it.a, p = picks[i];
+      const box = document.createElement('div'); box.className = 'q';
+      const h = document.createElement('h3'); h.textContent = (i + 1) + '. ' + it.q; box.appendChild(h);
+      it.o.forEach((t, j) => {
+        const b = document.createElement('button'); b.className = 'opt g'; b.textContent = t;
+        if (p !== undefined) { b.disabled = true; if (a != null && j === a) b.classList.add('ok'); else if (j === p && a != null) b.classList.add('bad'); else if (j === p) b.style.borderWidth = '3px'; }
+        b.onclick = async () => { picks[i] = j; render(); try { await ref.set({ quiz: { [i]: j } }, { merge: true }); } catch (e) { alert('儲存失敗:' + e.message); } };
+        box.appendChild(b);
+      });
+      const st = document.createElement('div'); st.className = 'n';
+      if (p !== undefined && a == null) st.textContent = '⏳ 等定宇揭曉答案';
+      if (p !== undefined && a != null) { rev++; if (p === a) right++; st.textContent = p === a ? '🎉 答對了!' : '💔 答案是:' + it.o[a]; }
+      box.appendChild(st);
+      if (p !== undefined && a != null && notes[i]) { const n = document.createElement('div'); n.className = 'note'; n.textContent = '定宇說:' + notes[i]; box.appendChild(n); }
+      list.appendChild(box);
+    }
+    $('score').textContent = rev ? '默契度 ' + Math.round(right / rev * 100) + '%(' + right + '/' + rev + ')' : '還沒有已揭曉的題目';
+    $('unlock').textContent = '已解鎖 ' + open + ' / ' + bank.length + ' 題';
+  };
+  render();
+  db.collection('coupleData').doc('quiz').onSnapshot(s => { const x = s.exists ? s.data() : {}; ans = x.answers || {}; notes = x.notes || {}; render(); }, () => render());
+})();
+</script>
+</body>
+</html>
