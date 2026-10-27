@@ -91,7 +91,7 @@ nav a.active { background: var(--accent); color: #fff; }
 </nav>
 
 
-<h1 id="title"></h1>
+<h1 id="title"><span id="titleText"></span> <span id="titleHeart" style="cursor:pointer; user-select:none;">💖</span></h1>
 <p class="sub" id="sub"></p>
 <div class="chips" id="chips"></div>
 <div class="wrap" id="wrap">
@@ -243,7 +243,39 @@ function chips(){
 }
 const left = () => cfg.dailyLimit>0 ? Math.max(0,cfg.dailyLimit+(ST.bonus.d===tk()?ST.bonus.n:0)-(ST.days[tk()]||0)) : Infinity;
 function applyText(){
-  $("title").textContent = cfg.herName ? `💖 給${cfg.herName}的專屬刮刮樂` : cfg.title;
+  $("titleText").textContent = cfg.herName ? `給${cfg.herName}的專屬刮刮樂` : cfg.title.replace(" 💖","");
+  $("sub").textContent = cfg.subtitle; chips();
+}
+
+/* ---------- 隱藏彩蛋二：狂戳「標題愛心」 ---------- */
+let heartClicks = 0;
+let heartTimer = null;
+if($("titleHeart")) {
+    $("titleHeart").addEventListener("click", () => {
+        heartClicks++;
+        clearTimeout(heartTimer);
+        heartTimer = setTimeout(() => { heartClicks = 0; }, 2000); // 2秒內沒點就重置
+        
+        if(heartClicks === 9) {
+            heartClicks = 0;
+            if(navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 300]);
+            const eggLetter = {
+                e: "💌", 
+                t: "絕對機密情書", 
+                n: "這是一封藏在系統深處的信件。
+
+寶鼻，當妳發現這個秘密的時候，我可能正在操課，也可能正在站哨。
+但妳要知道，我愛妳的心思，就跟這個彩蛋一樣，藏在每一個妳看得到、或看不到的地方。
+
+等我回來，給妳一個最大最大的擁抱。
+愛妳的定宇 💖", 
+                r: "L", letter: true
+            };
+            showModal(eggLetter);
+        }
+    });
+}
+的專屬刮刮樂` : cfg.title;
   $("sub").textContent = cfg.subtitle; chips();
 }
 let currentPage = 1;
@@ -303,7 +335,24 @@ function colGrid(){
 
 // 綁定搜尋與分頁按鈕事件
 document.addEventListener("DOMContentLoaded", () => {
-    if($("colSearch")) $("colSearch").addEventListener("input", () => { currentPage = 1; colGrid(); });
+    
+    if($("colSearch")) $("colSearch").addEventListener("input", () => { 
+        const kw = $("colSearch").value.trim();
+        // 隱藏彩蛋一
+        if(kw === "我愛定宇" || kw === "520") {
+            confetti({k: 100}); // 玫瑰花瓣雨 (借用煙火特效，數量調多)
+            $("colSearch").value = ""; // 清空
+            toast("🌹 解鎖隱藏彩蛋！獲得終極神券！");
+            
+            // 給予隱藏獎品
+            const specialPrize = {e:"💍", t:"終極隱藏：無條件答應任何事券", n:"小寶說什麼就是什麼，本寶絕對服從！", r:"L", w:0};
+            const g = ST.got[specialPrize.t] || (ST.got[specialPrize.t] = {n:0,u:0}); g.n++; save();
+            setTimeout(()=> { share(specialPrize); colGrid(); }, 1500);
+            return;
+        }
+        currentPage = 1; colGrid(); 
+    });
+
     if($("colFilter")) $("colFilter").addEventListener("change", () => { currentPage = 1; colGrid(); });
     if($("btnPrevPage")) $("btnPrevPage").addEventListener("click", () => { currentPage--; colGrid(); });
     if($("btnNextPage")) $("btnNextPage").addEventListener("click", () => { currentPage++; colGrid(); });
@@ -393,6 +442,25 @@ cv.addEventListener("pointermove",scratch);
 ["pointerup","pointercancel"].forEach(t=>cv.addEventListener(t,()=>{ if(drawing&&!revealed) check(); drawing = false; }));
 nextBtn.onclick = newCard;
 window.addEventListener("resize",()=>{ if(!revealed&&moves===0&&left()>0) paint(); });
+
+
+/* ---------- 隱藏彩蛋三：11:11 的「時空魔法」 ---------- */
+setInterval(()=>{
+  if(document.hidden) return;
+  const now = new Date();
+  if((now.getHours() === 11 || now.getHours() === 23) && now.getMinutes() === 11) {
+      if(!document.body.classList.contains('magic-time')) {
+          document.body.classList.add('magic-time');
+          document.documentElement.dataset.theme = 'night'; // 切換成星空模式
+          toast("✨ 現在是 11:11，本寶正在軍中偷偷想妳喔 💖");
+      }
+  } else {
+      if(document.body.classList.contains('magic-time')) {
+          document.body.classList.remove('magic-time');
+          applyTheme(); // 恢復原本佈景
+      }
+  }
+}, 30000);
 
 /* ---------- 背景飄浮愛心 ---------- */
 setInterval(()=>{

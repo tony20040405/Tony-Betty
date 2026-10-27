@@ -176,7 +176,22 @@ GAMES.catch = el => {
     },520));
     timers.push(setInterval(()=>{
       if(--t<=0){ run = false; stopAll(); $("ar").textContent = ""; upd(); $("go").hidden = false; $("go").textContent = "再玩一次";
-        if(sc>=18){ $("rs").textContent = `🎉 接到 ${sc} 顆,過關!`; award("catch"); } else $("rs").textContent = `接到 ${sc} 顆,差一點!再挑戰看看`; }
+        
+        if(sc>=18){ 
+            if(sc >= 25) { // 隱藏彩蛋四：接到超高分 (例如 25 顆)
+                $("rs").textContent = `🎉 滿分神手！接到 ${sc} 顆！解鎖隱藏大獎！`; 
+                award("catch");
+                setTimeout(() => {
+                    const S = load(); if(!S.got) S.got = {};
+                    const g = S.got["遊樂園霸主專屬點心券"] || (S.got["遊樂園霸主專屬點心券"] = {n:0,u:0}); g.n++;
+                    try { cloudSync.push(JSON.stringify(S)); } catch(_) {}
+                    toast("🏆 獲得隱藏大獎：遊樂園霸主專屬點心券！請去收藏冊查看！");
+                }, 1500);
+            } else {
+                $("rs").textContent = `🎉 接到 ${sc} 顆,過關!`; award("catch"); 
+            }
+        } else $("rs").textContent = `接到 ${sc} 顆,差一點!再挑戰看看`; 
+ }
       else upd();
     },1000));
   };
