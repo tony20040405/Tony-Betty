@@ -38,6 +38,7 @@
 <section class="panel"><div class="stat"><div><b id="passed">-</b>已過天數</div><div><b id="total">-</b>總天數</div><div><b id="weeks">-</b>剩餘週數</div></div></section>
 <section class="panel"><h2>🏅 里程碑</h2><div class="ms" id="ms"></div></section>
 <section class="panel" id="leaveBox" hidden><h2>🏠 下次放假</h2><div id="leave"></div></section>
+<section class="panel"><h2>💌 定宇的信</h2><div id="letters"></div></section>
 <section class="panel"><h2>💌 今日一句話</h2><div class="msg" id="msg"></div></section>
 <script>
 (async () => {
@@ -47,6 +48,13 @@
   const S = P(site.dates.armyStart), E = P(site.dates.armyEnd), DAY = 864e5, total = Math.round((E - S) / DAY);
   const MS = [[10,'十分之一 🌱'],[25,'四分之一 🌸'],[50,'過半了 🎉'],[75,'四分之三 🚀'],[90,'最後衝刺 🔥'],[100,'退伍!🎖️']];
   $('total').textContent = total;
+  const curDay = armyDayNumber(site);
+  [...(site.letters || [])].sort((x, y) => x.day - y.day).forEach(l => {
+    const b = document.createElement('button'); b.className = 'g'; b.style.cssText = 'display:block;width:100%;margin:6px 0;text-align:left';
+    if (curDay >= l.day) { b.textContent = (l.icon || '💌') + ' 第 ' + l.day + ' 天・' + (l.title || ''); b.onclick = () => showLetter(l); }
+    else { b.textContent = '🔒 第 ' + l.day + ' 天開啟'; b.disabled = true; }
+    $('letters').appendChild(b);
+  });
   const leaves = ((site.army && site.army.leaves) || []).map(P).sort((a, b) => a - b);
   const now0 = new Date(); const dn = Math.floor(Date.UTC(now0.getFullYear(), now0.getMonth(), now0.getDate()) / DAY);
   const dm = (site.capsule && site.capsule.dailyMessages) || [];

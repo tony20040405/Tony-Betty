@@ -112,3 +112,38 @@ const cloudSync = {
       .catch(e => { console.error('雲端儲存失敗', e); this.status('err', '⚠️ 雲端儲存失敗'); });
   }
 };
+
+/* ---------- 定時跳出的信:當兵第 N 天自動開啟,每封只跳一次(記在 userData.lettersRead) ---------- */
+function armyDayNumber(site) {                       // 入伍當天 = 第 1 天
+  const [y, m, d] = site.dates.armyStart.split('-').map(Number), t = new Date();
+  return Math.floor((new Date(t.getFullYear(), t.getMonth(), t.getDate()) - new Date(y, m - 1, d)) / 864e5) + 1;
+}
+function showLetter(l, onClose) {
+  const o = document.createElement('div');
+  o.style.cssText = 'position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:20px';
+  const b = document.createElement('div');
+  b.style.cssText = 'background:var(--card,#fff);color:var(--fg,#4a2230);border:3px solid var(--accent,#e8557a);border-radius:20px;padding:24px;max-width:420px;width:100%;max-height:85vh;overflow:auto;text-align:left;font-family:inherit';
+  const h = document.createElement('h3'); h.style.cssText = 'margin:0 0 4px;color:var(--accent,#e8557a)'; h.textContent = (l.icon || '💌') + ' ' + (l.title || '給妳的信');
+  const d = document.createElement('div'); d.style.cssText = 'font-size:.8rem;opacity:.7;margin-bottom:10px'; d.textContent = '當兵第 ' + l.day + ' 天';
+  const p = document.createElement('p'); p.style.cssText = 'line-height:1.8;white-space:pre-wrap;margin:0 0 16px'; p.textContent = l.content || '';
+  const btn = document.createElement('button'); btn.textContent = '收下這封信 💖';
+  btn.style.cssText = 'width:100%;background:var(--accent,#e8557a);color:#fff;border:0;border-radius:999px;padding:12px;font-size:1rem;font-weight:bold;cursor:pointer';
+  btn.onclick = () => { o.remove(); if (onClose) onClose(); };
+  b.append(h, d, p, btn); o.appendChild(b); document.body.appendChild(o);
+}
+async function checkLetters(user) {
+  if (IS_LOGIN_PAGE || IS_ADMIN_PAGE) return;
+  const site = await loadSiteConfig(), day = armyDayNumber(site); if (day < 1) return;
+  let read = {};
+  try { const s = await db.collection('userData').doc(user.uid).get(); read = (s.exists && s.data().lettersRead) || {}; } catch (e) { return; }
+  const due = (site.letters || []).filter(l => l.day <= day && !read[l.day]).sort((a, b) => a.day - b.day);
+  const next = () => {
+    const l = due.shift(); if (!l) return;
+    whenDomReady(() => showLetter(l, () => {
+      db.collection('userData').doc(user.uid).set({ lettersRead: { [l.day]: true } }, { merge: true }).catch(console.error);
+      next();
+    }));
+  };
+  next();
+}
+authReady.then(u => { if (u) checkLetters(u); });
