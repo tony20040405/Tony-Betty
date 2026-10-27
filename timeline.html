@@ -37,12 +37,15 @@
 <h1>📖 我們的故事</h1>
 <p class="sub">紀錄每個充滿愛與歡笑的日子</p>
 
-<div style="margin: 20px auto; max-width: 480px; width: 100%; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(232,85,122,.2); border: 2px solid var(--accent);">
-  <video controls autoplay loop muted style="width: 100%; display: block;">
-    <source src="我與小寶.mp4" type="video/mp4">
-    您的瀏覽器不支援影片播放。
-  </video>
+
+<div style="margin: 20px auto; max-width: 480px; width: 100%; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(232,85,122,.2); border: 2px solid var(--accent); aspect-ratio: 9/16; background: #000; position: relative;">
+  <iframe src="https://www.youtube.com/embed/HBFM0mNzvcw?autoplay=1&mute=1&loop=1&playlist=HBFM0mNzvcw&playsinline=1" 
+          style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;" 
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+          allowfullscreen>
+  </iframe>
 </div>
+
 <div class="timeline" id="tl">讀取中...</div>
 <script>
 (async () => {
