@@ -2,22 +2,14 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // 設定全站共同資料
-    match /coupleData/{doc} {
-      allow read: if request.auth != null;
-      allow write: if request.auth.token.email == 'tony0930508440@gmail.com';
-    }
+    function me()     { return request.auth != null && request.auth.token.email == 'tony0930508440@gmail.com'; }
+    function couple() { return request.auth != null &&
+                        request.auth.token.email in ['tony0930508440@gmail.com', 'hbes10009@gmail.com']; }
 
-    // 設定個人的存檔資料
-    match /userData/{userId} {
-      // 只能讀寫自己的資料，或者管理員可以寫入別人的資料(為了重設功能)
-      allow read: if request.auth != null && (request.auth.uid == userId || request.auth.token.email == 'tony0930508440@gmail.com');
-      allow write: if request.auth != null && (request.auth.uid == userId || request.auth.token.email == 'tony0930508440@gmail.com');
-    }
-
-    // 每日問答資料
-    match /daily/{doc} {
-      allow read, write: if request.auth != null;
-    }
+    // 允許本人讀寫，也允許管理員寫入任何人的資料（用於重設）
+    match /userData/{uid}   { allow read: if couple() && (request.auth.uid == uid || me());
+                              allow write: if couple() && (request.auth.uid == uid || me()); }
+    match /daily/{day}      { allow read, write: if couple(); }
+    match /coupleData/{doc} { allow read: if couple(); allow write: if me(); }
   }
 }
