@@ -122,7 +122,17 @@ const LIST = [
   {id:"catch",e:"💖",t:"接愛心",d:"25 秒接到 18 顆",s:1},
   {id:"rps",e:"✌️",t:"猜拳大戰",d:"五戰三勝贏過我",s:1},
   {id:"fortune",e:"🎋",t:"今日籤詩",d:"每天一支"},
-  {id:"dice",e:"🎲",t:"命運骰子",d:"吃什麼、做什麼、真心話"}
+  {id:"dice",e:"🎲",t:"命運骰子",d:"吃什麼、做什麼、真心話"},
+  {id:"lovemeter",e:"⚡",t:"愛心發電",d:"10秒狂點50次填滿愛心"},
+  {id:"slot",e:"🎰",t:"驚喜拉霸機",d:"連成線拿星星"},
+  {id:"simon",e:"🧠",t:"心電感應",d:"記住愛心閃爍的順序"},
+  {id:"bubble",e:"🫧",t:"舒壓捏泡泡",d:"捏破所有泡泡放鬆一下"},
+  {id:"roulette",e:"🎯",t:"今晚誰洗碗",d:"輸入選項讓命運決定"},
+  {id:"breathing",e:"🧘",t:"一起深呼吸",d:"跟著節奏呼吸放鬆"},
+  {id:"generator",e:"💬",t:"專屬情話",d:"每天聽一句專屬撩妹金句"},
+  {id:"color",e:"🎨",t:"找不同",d:"找出顏色不一樣的方塊"},
+  {id:"mood",e:"📝",t:"今日心情",d:"記錄今天的心情拿星星"},
+  {id:"stopwatch",e:"⏱️",t:"盲測 11:11",d:"矇眼按停在 11.11 秒"}
 ];
 function hub(){
   stopAll(); $("g").hidden = true; $("hub").hidden = false;
@@ -228,6 +238,7 @@ GAMES.fortune = el => {
   const q = el.querySelectorAll(".ft h2,.ft p,.ft span");
   q[0].textContent = f[0]; q[1].textContent = f[1]; q[3].textContent = C[h%C.length]; q[4].textContent = (h%9)+1; q[6].textContent = f[2];
 };
+
 /* ---------- 命運骰子 ---------- */
 GAMES.dice = el => {
   const D = {
@@ -245,6 +256,286 @@ GAMES.dice = el => {
     const iv = setInterval(()=>{ $("rs").textContent = rnd(D[cat]); $("df").textContent = rnd(["🎲","🎯","🎰","✨"]);
       if(++n>=16){ clearInterval(iv); $("df").textContent = "🎯"; $("roll").disabled = false; if(navigator.vibrate) navigator.vibrate(80); confetti(14); } },80);
     timers.push(iv);
+  };
+};
+
+/* ---------- 愛心發電 ---------- */
+GAMES.lovemeter = el => {
+  let clicks = 0, t = 10, run = false, iv = null;
+  el.innerHTML = `<div class="info">10 秒內點擊 50 次！<br>剩餘時間: <b id="lm-t">10</b> 秒</div>
+  <div style="width:100%;height:30px;background:var(--line);border-radius:15px;overflow:hidden;margin:10px 0;">
+    <div id="lm-bar" style="width:0%;height:100%;background:var(--accent);transition:0.1s;"></div>
+  </div>
+  <button class="b" id="lm-btn" style="font-size:3rem;padding:20px;border-radius:50%;">💖</button>
+  <div class="res" id="lm-rs"></div>`;
+  $("lm-btn").onclick = () => {
+    if(clicks >= 50) return;
+    if(!run) {
+      run = true;
+      iv = setInterval(() => {
+        t--; $("lm-t").textContent = t;
+        if(t <= 0) {
+          clearInterval(iv); run = false;
+          if(clicks < 50) $("lm-rs").textContent = `時間到！只點了 ${clicks} 次，再試一次吧！`;
+          $("lm-btn").disabled = true;
+          setTimeout(() => GAMES.lovemeter(el), 2000); 
+        }
+      }, 1000);
+      timers.push(iv);
+    }
+    clicks++;
+    $("lm-bar").style.width = (clicks * 2) + "%";
+    if(navigator.vibrate) navigator.vibrate(20);
+    if(clicks >= 50) {
+      clearInterval(iv);
+      $("lm-rs").textContent = "🎉 發電完成！電量 100%！";
+      $("lm-btn").disabled = true;
+      award("lovemeter");
+    }
+  };
+};
+
+/* ---------- 驚喜拉霸機 ---------- */
+GAMES.slot = el => {
+  const items = ["💖","🧸","🍰","🍓","💍","🌹"];
+  el.innerHTML = `<div class="info">連成三個一樣的就過關！</div>
+  <div style="display:flex;justify-content:center;gap:10px;font-size:3rem;margin:20px 0;">
+    <div id="sl1" class="rp">❓</div><div id="sl2" class="rp">❓</div><div id="sl3" class="rp">❓</div>
+  </div>
+  <button class="b" id="sl-btn">開始拉霸</button>
+  <div class="res" id="sl-rs"></div>`;
+  let spinning = false;
+  $("sl-btn").onclick = () => {
+    if(spinning) return; spinning = true; $("sl-rs").textContent = "";
+    let c1=0, c2=0, c3=0;
+    const i1 = setInterval(()=> $("sl1").textContent = items[++c1%items.length], 50);
+    const i2 = setInterval(()=> $("sl2").textContent = items[++c2%items.length], 50);
+    const i3 = setInterval(()=> $("sl3").textContent = items[++c3%items.length], 50);
+    timers.push(i1, i2, i3);
+    setTimeout(() => { clearInterval(i1); }, 1000);
+    setTimeout(() => { clearInterval(i2); }, 1500);
+    setTimeout(() => {
+      clearInterval(i3); spinning = false;
+      const r1 = $("sl1").textContent, r2 = $("sl2").textContent, r3 = $("sl3").textContent;
+      if(r1===r2 && r2===r3) { $("sl-rs").textContent = "🎉 中大獎啦！"; award("slot"); }
+      else { $("sl-rs").textContent = "可惜沒中，再試一次！"; }
+    }, 2000);
+  };
+};
+
+/* ---------- 心電感應 (Simon) ---------- */
+GAMES.simon = el => {
+  const colors = ["#ff5fa2","#ff9d00","#3aa66a","#2f8cff"];
+  el.innerHTML = `<div class="info">記住顏色閃爍的順序並跟著按 (共 3 關)</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:200px;margin:10px auto;" id="sm-grid"></div>
+  <button class="b" id="sm-btn">開始記憶</button><div class="res" id="sm-rs"></div>`;
+  const grid = $("sm-grid");
+  const btns = [];
+  colors.forEach((c, i) => {
+    const b = document.createElement("button"); b.className = "cd"; b.style.background = c; b.style.opacity = "0.3";
+    b.onclick = () => handle(i); grid.appendChild(b); btns.push(b);
+  });
+  let seq = [], step = 0, level = 1, playing = false;
+  const flash = (idx) => new Promise(r => {
+    btns[idx].style.opacity = "1";
+    setTimeout(() => { btns[idx].style.opacity = "0.3"; setTimeout(r, 100); }, 400);
+  });
+  const playSeq = async () => {
+    playing = true; $("sm-rs").textContent = `第 ${level} 關，請注意看！`;
+    for(let i=0; i<seq.length; i++) await flash(seq[i]);
+    playing = false; $("sm-rs").textContent = "輪到妳了！"; step = 0;
+  };
+  const handle = (idx) => {
+    if(playing || seq.length === 0) return;
+    flash(idx);
+    if(idx !== seq[step]) {
+      $("sm-rs").textContent = "❌ 按錯囉，重新開始！"; seq = []; $("sm-btn").hidden = false;
+    } else {
+      step++;
+      if(step === seq.length) {
+        if(level === 3) { $("sm-rs").textContent = "🎉 完美通關！太有默契了！"; award("simon"); seq = []; $("sm-btn").hidden = false; $("sm-btn").textContent = "再玩一次"; }
+        else { level++; seq.push(Math.random()*4|0); setTimeout(playSeq, 1000); }
+      }
+    }
+  };
+  $("sm-btn").onclick = () => { $("sm-btn").hidden = true; level = 1; seq = [Math.random()*4|0]; playSeq(); };
+};
+
+/* ---------- 舒壓捏泡泡 ---------- */
+GAMES.bubble = el => {
+  el.innerHTML = `<div class="info">把所有泡泡捏破吧！</div>
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:10px 0;" id="bb-grid"></div>
+  <button class="b" id="bb-btn" hidden>再玩一次</button>
+  <div class="res" id="bb-rs"></div>`;
+  const init = () => {
+      $("bb-grid").innerHTML = ""; $("bb-rs").textContent = ""; $("bb-btn").hidden = true;
+      let left = 20;
+      for(let i=0; i<20; i++) {
+        const b = document.createElement("button"); b.className = "cd"; b.textContent = "⚪"; b.style.background = "transparent"; b.style.fontSize = "2rem"; b.style.boxShadow = "none";
+        b.onclick = () => {
+          if(b.textContent === "⚪") {
+            b.textContent = "💥"; b.style.opacity = "0.5"; left--;
+            if(navigator.vibrate) navigator.vibrate(20);
+            if(left === 0) { $("bb-rs").textContent = "🎉 泡泡全破，好舒壓！"; $("bb-btn").hidden = false; award("bubble"); }
+          }
+        };
+        $("bb-grid").appendChild(b);
+      }
+  };
+  init();
+  $("bb-btn").onclick = init;
+};
+
+/* ---------- 今晚誰洗碗 ---------- */
+GAMES.roulette = el => {
+  el.innerHTML = `<div class="info">輸入選項，用逗號分隔，讓命運決定！</div>
+  <input type="text" id="rl-in" placeholder="例如：定宇,小寶,一起洗" style="margin-bottom:10px;">
+  <button class="b" id="rl-btn">開始抽籤</button>
+  <div class="big" id="rl-res" style="margin:20px 0;font-size:2.2rem;min-height:3.5rem;">❓</div>`;
+  $("rl-btn").onclick = () => {
+    const val = $("rl-in").value.split(/[,，]/).map(x=>x.trim()).filter(x=>x);
+    if(val.length < 2) { toast("至少輸入兩個選項喔！"); return; }
+    $("rl-btn").disabled = true; let c = 0;
+    const iv = setInterval(() => { $("rl-res").textContent = val[++c % val.length]; }, 80);
+    timers.push(iv);
+    setTimeout(() => {
+      clearInterval(iv);
+      $("rl-res").textContent = "🎯 " + rnd(val) + "！";
+      $("rl-btn").disabled = false;
+      award("roulette");
+    }, 2500);
+  };
+};
+
+/* ---------- 一起深呼吸 ---------- */
+GAMES.breathing = el => {
+  el.innerHTML = `<div class="info">看著圈圈跟著節奏深呼吸<br>放空大腦，我們一起做 30 秒 🧘</div>
+  <div style="height:200px;display:flex;align-items:center;justify-content:center;margin:10px 0;">
+    <div id="br-cir" style="width:80px;height:80px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;transition:transform 3.5s ease-in-out;">準備</div>
+  </div>
+  <button class="b" id="br-btn">開始呼吸</button><div class="res" id="br-rs"></div>`;
+  $("br-btn").onclick = () => {
+    $("br-btn").hidden = true; let t = 32, ins = true;
+    const cir = $("br-cir");
+    cir.style.transform = "scale(2.2)"; cir.textContent = "吸氣";
+    const iv = setInterval(() => {
+      t -= 4;
+      if(t <= 0) {
+        clearInterval(iv); cir.style.transform = "scale(1)"; cir.textContent = "完成";
+        $("br-rs").textContent = "🎉 感覺放鬆多了吧！給妳一顆星星！"; award("breathing"); $("br-btn").hidden = false; $("br-btn").textContent = "再一次";
+        return;
+      }
+      ins = !ins;
+      cir.style.transform = ins ? "scale(2.2)" : "scale(1)";
+      cir.textContent = ins ? "吸氣" : "吐氣";
+    }, 4000);
+    timers.push(iv);
+  };
+};
+
+/* ---------- 土味情話 ---------- */
+GAMES.generator = el => {
+  const lines = [
+    "妳知道妳和星星有什麼區別嗎？星星在天上，妳在我心裡 💖",
+    "我最近有點忙... 忙著想妳 😘",
+    "妳是什麼血型？... 不，妳是我的理想型 🥰",
+    "不要抱怨了，抱我 🤗",
+    "我可以稱呼妳為您嗎？這樣我就可以把妳放在心上 ❤️",
+    "妳知道我為什麼感冒嗎？因為我對妳完全沒有抵抗力。",
+    "我發現妳今天有點怪... 怪可愛的！",
+    "妳知道我的缺點是什麼嗎？缺點妳。",
+    "妳會彈吉他嗎？不然妳怎麼一直撥動我的心弦？",
+    "妳可以幫我洗個東西嗎？喜歡我。"
+  ];
+  el.innerHTML = `<div class="info">點擊按鈕，接收本寶的愛意吧！</div>
+  <div class="card" id="gen-txt" style="margin:15px 0;">點擊下方按鈕獲取情話</div>
+  <button class="b" id="gen-btn">聽情話 💌</button>`;
+  $("gen-btn").onclick = () => {
+    $("gen-txt").textContent = rnd(lines);
+    award("generator");
+  };
+};
+
+/* ---------- 找不同 ---------- */
+GAMES.color = el => {
+  let level = 1;
+  el.innerHTML = `<div class="info">找出顏色稍微不一樣的那塊！(共 3 關)</div>
+  <div id="cl-rs" style="margin-bottom:10px;font-weight:bold;color:var(--accent);">第 1 關</div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;max-width:260px;margin:0 auto;" id="cl-grid"></div>`;
+  const render = () => {
+    const grid = $("cl-grid"); grid.innerHTML = "";
+    const hue = Math.random()*360|0;
+    const diff = Math.max(8, 25 - level*6); 
+    const target = Math.random()*16|0;
+    for(let i=0; i<16; i++) {
+      const b = document.createElement("button"); b.className = "cd"; b.style.borderRadius = "8px"; b.textContent = "";
+      b.style.background = i === target ? `hsl(${hue}, 80%, ${60+diff}%)` : `hsl(${hue}, 80%, 60%)`;
+      b.style.boxShadow = "none";
+      b.onclick = () => {
+        if(i === target) {
+          if(level >= 3) { $("cl-rs").textContent = "🎉 妳的眼睛太厲害了！過關！"; grid.innerHTML=""; award("color"); }
+          else { level++; $("cl-rs").textContent = `第 ${level} 關`; render(); }
+        } else {
+          $("cl-rs").textContent = "❌ 點錯了！重新開始"; level = 1; render();
+        }
+      };
+      grid.appendChild(b);
+    }
+  };
+  render();
+};
+
+/* ---------- 今日心情 ---------- */
+GAMES.mood = el => {
+  const moods = [
+    {e:"😍", t:"超開心", m:"太棒了！要把這份快樂傳染給我喔！"},
+    {e:"😌", t:"很平靜", m:"平凡的一天也是最幸福的一天。"},
+    {e:"🥺", t:"有點累", m:"辛苦了寶鼻，快來我懷裡充個電！"},
+    {e:"😡", t:"好生氣", m:"是誰惹妳！等我回去幫妳揍他！"},
+    {e:"😭", t:"想哭了", m:"乖乖不哭，本寶一直都在妳身邊陪妳喔。"}
+  ];
+  el.innerHTML = `<div class="info">寶鼻今天心情怎麼樣呢？</div>
+  <div style="display:flex;gap:8px;justify-content:center;margin:15px 0;" id="md-btns"></div>
+  <div class="res" id="md-rs" style="min-height:60px;"></div>`;
+  moods.forEach(m => {
+    const b = document.createElement("button"); b.className = "rp"; b.textContent = m.e;
+    b.style.fontSize = "2.2rem"; b.style.padding = "5px 10px"; b.style.margin = "2px";
+    b.onclick = () => {
+      $("md-rs").innerHTML = `<b>${m.t}</b><br><span style="color:var(--muted);font-size:0.95rem;">${m.m}</span>`;
+      award("mood");
+    };
+    $("md-btns").appendChild(b);
+  });
+};
+
+/* ---------- 11:11 挑戰 ---------- */
+GAMES.stopwatch = el => {
+  el.innerHTML = `<div class="info">盲測計時！試著準確停在 <b>11.11</b> 秒<br>(誤差 0.25 秒內算過關)</div>
+  <div class="big" id="sw-time" style="font-variant-numeric: tabular-nums;">0.00</div>
+  <button class="b" id="sw-btn" style="width:120px;">開始</button>
+  <div class="res" id="sw-rs"></div>`;
+  let startT = 0, iv = null, running = false;
+  $("sw-btn").onclick = () => {
+    if(!running) {
+      running = true; startT = Date.now(); $("sw-btn").textContent = "停止！"; $("sw-rs").textContent = "計時中... (畫面會隱藏時間喔)";
+      $("sw-btn").style.background = "#ff4d4d";
+      iv = setInterval(() => {
+        const diff = (Date.now() - startT) / 1000;
+        if(diff < 2) $("sw-time").textContent = diff.toFixed(2);
+        else $("sw-time").textContent = "?.??"; 
+      }, 50);
+      timers.push(iv);
+    } else {
+      running = false; clearInterval(iv); $("sw-btn").textContent = "重試";
+      $("sw-btn").style.background = "var(--accent)";
+      const diff = (Date.now() - startT) / 1000;
+      $("sw-time").textContent = diff.toFixed(2);
+      if(Math.abs(diff - 11.11) <= 0.25) { 
+        $("sw-rs").textContent = `🎉 太神啦！${diff.toFixed(2)} 秒過關！`; award("stopwatch");
+      } else {
+        $("sw-rs").textContent = `可惜！差了一點點 (${diff.toFixed(2)} 秒)`;
+      }
+    }
   };
 };
 /* 先確認登入並讀完雲端存檔,再顯示大廳 */
