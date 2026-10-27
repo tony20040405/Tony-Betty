@@ -110,6 +110,24 @@ nav a.active { background: var(--accent); color: #fff; }
 <section class="panel" id="col" hidden>
   <h2>🎒 我的收藏冊 <span id="prog"></span></h2>
   <div class="hint">刮到的獎品都會收進來,按「兌換」就是跟他使用這張券囉(記得截圖給他看 📸)。</div>
+  
+  <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+    <input type="text" id="colSearch" placeholder="🔍 搜尋名稱..." style="flex:1; min-width:140px; padding:10px; border-radius:12px; border:2px solid var(--line); font-size:0.95rem; background:var(--b1); color:var(--fg);">
+    <select id="colFilter" style="padding:10px; border-radius:12px; border:2px solid var(--line); font-size:0.95rem; background:var(--b1); color:var(--fg); outline:none;">
+      <option value="ALL">所有分類</option>
+      <option value="N">普通獎品 (N)</option>
+      <option value="R">稀有獎品 (R)</option>
+      <option value="E">史詩獎品 (E)</option>
+      <option value="L">傳說獎品 (L)</option>
+      <option value="W">小轉盤獎品</option>
+    </select>
+  </div>
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+     <button class="g" id="btnPrevPage" style="padding:6px 16px; font-size:0.85rem; box-shadow:none;">上一頁</button>
+     <span id="colPageInfo" style="font-size:0.9rem; font-weight:bold; color:var(--muted);">第 1 頁</span>
+     <button class="g" id="btnNextPage" style="padding:6px 16px; font-size:0.85rem; box-shadow:none;">下一頁</button>
+  </div>
+  
   <div class="grid" id="grid"></div>
   <div class="hint" style="margin-top:12px">成就徽章</div><div id="ach"></div>
 </section>
@@ -227,12 +245,51 @@ function applyText(){
   $("title").textContent = cfg.herName ? `💖 給${cfg.herName}的專屬刮刮樂` : cfg.title;
   $("sub").textContent = cfg.subtitle; chips();
 }
+let currentPage = 1;
+const PAGE_SIZE = 12; // 每頁顯示 12 個
 function colGrid(){
   const g = $("grid"); g.textContent = ""; let have = 0;
-  allList().forEach(p => {
+  let list = allList();
+  
+  // 計算總持有數
+  list.forEach(p => { if(ST.got[p.t]) have++; });
+  $("prog").textContent = `${have}/${list.length}`; renderAch();
+  
+  // 取得搜尋與分類條件
+  const kw = $("colSearch") ? $("colSearch").value.toLowerCase() : "";
+  const fv = $("colFilter") ? $("colFilter").value : "ALL";
+  
+  // 過濾列表
+  list = list.filter(p => {
+     const T = TIER[p.r] || TIER.N;
+     if (fv !== "ALL" && p.r !== fv) return false;
+     if (kw && !p.t.toLowerCase().includes(kw) && !T.n.toLowerCase().includes(kw)) return false;
+     return true;
+  });
+  
+  // 分頁計算
+  const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
+  
+  if($("colPageInfo")) {
+     $("colPageInfo").textContent = `第 ${currentPage} / ${totalPages} 頁 (共 ${list.length} 項)`;
+     $("btnPrevPage").disabled = currentPage === 1;
+     $("btnNextPage").disabled = currentPage === totalPages;
+  }
+  
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageList = list.slice(start, start + PAGE_SIZE);
+  
+  if (pageList.length === 0) {
+      g.innerHTML = `<div style="grid-column: 1 / -1; color: var(--muted); padding: 20px;">找不到符合的獎品喔 🥺</div>`;
+      return;
+  }
+
+  pageList.forEach(p => {
     const rec = ST.got[p.t], T = TIER[p.r]||TIER.N, it = document.createElement("div");
     it.className = "it" + (rec?"":" lock"); it.style.setProperty("--c",T.c);
-    if(rec){ have++; const rest = rec.n-(rec.u||0);
+    if(rec){ const rest = rec.n-(rec.u||0);
       it.innerHTML = `<div class="e"></div><b></b><small>${T.n} ・ 持有 ${rest} 張</small>`;
       it.children[0].textContent = p.e; it.children[1].textContent = p.t;
       const b = document.createElement("button"); b.textContent = rest>0 ? "兌換" : "已用完"; b.disabled = rest<=0;
@@ -240,8 +297,15 @@ function colGrid(){
     } else it.innerHTML = `<div class="e">❓</div><b>???</b><small>${T.n}</small>`;
     g.appendChild(it);
   });
-  $("prog").textContent = `${have}/${allList().length}`; renderAch();
 }
+
+// 綁定搜尋與分頁按鈕事件
+document.addEventListener("DOMContentLoaded", () => {
+    if($("colSearch")) $("colSearch").addEventListener("input", () => { currentPage = 1; colGrid(); });
+    if($("colFilter")) $("colFilter").addEventListener("change", () => { currentPage = 1; colGrid(); });
+    if($("btnPrevPage")) $("btnPrevPage").addEventListener("click", () => { currentPage--; colGrid(); });
+    if($("btnNextPage")) $("btnNextPage").addEventListener("click", () => { currentPage++; colGrid(); });
+});
 $("colBtn").onclick = () => { $("col").hidden = !$("col").hidden; if(!$("col").hidden){ colGrid(); $("col").scrollIntoView({behavior:"smooth"}); } };
 
 /* ---------- 刮刮卡 ---------- */
