@@ -115,6 +115,7 @@ nav a.active { background: var(--accent); color: #fff; }
     <input type="text" id="colSearch" placeholder="🔍 搜尋名稱..." style="flex:1; min-width:140px; padding:10px; border-radius:12px; border:2px solid var(--line); font-size:0.95rem; background:var(--b1); color:var(--fg);">
     <select id="colFilter" style="padding:10px; border-radius:12px; border:2px solid var(--line); font-size:0.95rem; background:var(--b1); color:var(--fg); outline:none;">
       <option value="ALL">所有分類</option>
+      <option value="GOT">✅ 已經刮到</option>
       <option value="N">普通獎品 (N)</option>
       <option value="R">稀有獎品 (R)</option>
       <option value="E">史詩獎品 (E)</option>
@@ -262,7 +263,8 @@ function colGrid(){
   // 過濾列表
   list = list.filter(p => {
      const T = TIER[p.r] || TIER.N;
-     if (fv !== "ALL" && p.r !== fv) return false;
+     if (fv === "GOT" && !ST.got[p.t]) return false;
+     if (fv !== "ALL" && fv !== "GOT" && p.r !== fv) return false;
      if (kw && !p.t.toLowerCase().includes(kw) && !T.n.toLowerCase().includes(kw)) return false;
      return true;
   });
