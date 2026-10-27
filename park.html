@@ -110,8 +110,17 @@ function award(id){
   confetti(); if(navigator.vibrate) navigator.vibrate(120);
   if(S.park.g[id]){ toast("今天這關的星星已經拿過囉,再接再厲!"); return; }
   S.park.g[id] = 1;
-  if(Object.keys(S.park.g).length>=3){ const b = S.bonus && S.bonus.d===tk() ? S.bonus.n : 0; S.bonus = {d:tk(),n:b+1}; toast("🎁 三顆星集滿!回刮刮樂,今天多一張"); }
-  else toast("⭐ 獲得今日星星!");
+  
+  const stars = Object.keys(S.park.g).length;
+  // 每 3 顆星就可以多送 1 張刮刮卡
+  if (stars % 3 === 0) {
+      const b = S.bonus && S.bonus.d===tk() ? S.bonus.n : 0; 
+      S.bonus = {d:tk(), n:b+1}; 
+      toast(`🎁 累積 ${stars} 顆星！回刮刮樂，今天多加碼一張！`); 
+  } else {
+      toast(`⭐ 獲得今日星星！(已集 ${stars} 顆)`);
+  }
+  
   try { cloudSync.push(JSON.stringify(S)); } catch(_) { toast("儲存時發生錯誤"); }
   hub();
 }
@@ -137,7 +146,10 @@ const LIST = [
 function hub(){
   stopAll(); $("g").hidden = true; $("hub").hidden = false;
   const g = todayGames(), n = Object.keys(g).length;
-  $("stars").textContent = "今日星星 " + "⭐".repeat(Math.min(n,3)) + "☆".repeat(Math.max(0,3-n)) + (n>=3?" ・ 已領取刮刮卡獎勵 🎁":"");
+  
+  const earnedBonus = Math.floor(n / 3);
+  $("stars").textContent = "今日星星: " + n + " 顆 (每集滿3顆送1張刮刮卡)" + (earnedBonus > 0 ? ` ・ 已加碼 ${earnedBonus} 張 🎁` : "");
+
   $("hub").textContent = "";
   LIST.forEach(x => {
     const b = document.createElement("button"); b.className = "gc";
