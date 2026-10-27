@@ -31,7 +31,7 @@
   <a href="#" class="logout" onclick="auth.signOut(); return false;">登出🚪</a>
 </nav>
 <h1>🧠 默契問答</h1>
-<p class="sub">猜猜定宇的答案!每週會解鎖新題目,答案由定宇揭曉 💖</p>
+<p class="sub">猜猜定宇的答案!每天解鎖一題新題目,答案由定宇揭曉 💖</p>
 <section class="panel" style="text-align:center"><div id="score">讀取中...</div><div class="n" id="unlock"></div></section>
 <section class="panel" id="list"></section>
 <script>
@@ -41,7 +41,7 @@
   const bank = parseQuiz(site.quiz);
   const [y, m, d] = site.dates.armyStart.split('-').map(Number);
   const weeks = Math.max(0, Math.floor((Date.now() - new Date(y, m - 1, d)) / (7 * 864e5)));
-  const open = Math.min(bank.length, Math.ceil(bank.length * (weeks + 1) / 26));
+  const open = Math.min(bank.length, Math.max(1, Math.floor((Date.now() - new Date(y, m - 1, d)) / 864e5) + 1));   // 每天解鎖一題
   const ref = db.collection('userData').doc(user.uid); let picks = {}, ans = {}, notes = {};
   try { const s = await ref.get(); picks = (s.exists && s.data().quiz) || {}; } catch (e) { console.warn(e); }
   const render = () => {
@@ -65,6 +65,7 @@
     }
     $('score').textContent = rev ? '默契度 ' + Math.round(right / rev * 100) + '%(' + right + '/' + rev + ')' : '還沒有已揭曉的題目';
     $('unlock').textContent = '已解鎖 ' + open + ' / ' + bank.length + ' 題';
+    const ev = Number(site.quizEvery) || 3; $('unlock').textContent += ' ・每答對 ' + ev + ' 題送 1 張刮刮卡(已答對 ' + right + ' 題,再答對 ' + (ev - right % ev) + ' 題得下一張)';
   };
   render();
   db.collection('coupleData').doc('quiz').onSnapshot(s => { const x = s.exists ? s.data() : {}; ans = x.answers || {}; notes = x.notes || {}; render(); }, () => render());
