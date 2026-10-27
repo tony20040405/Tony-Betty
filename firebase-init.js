@@ -38,16 +38,25 @@ function loadSiteConfig(force) {                      // 同一頁只讀一次�
 }
 async function _loadSiteConfig() {
   const base = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+  
+  // 1. 嘗試從本機快取讀取，實現秒開
   try {
-    const doc = await db.collection('coupleData').doc('config').get();
-    if (doc.exists) {
-      const c = doc.data();
-      Object.keys(c).forEach(k => {
-        const v = c[k];
+    const cached = JSON.parse(localStorage.getItem('siteConfigCache'));
+    if (cached) {
+      Object.keys(cached).forEach(k => {
+        const v = cached[k];
         base[k] = (v && typeof v === 'object' && !Array.isArray(v)) ? Object.assign({}, base[k] || {}, v) : v;
       });
     }
-  } catch (e) { console.warn('讀取後台設定失敗,改用預設值', e); }
+  } catch(e) {}
+
+  // 2. 在背景更新快取 (不阻塞畫面)
+  db.collection('coupleData').doc('config').get().then(doc => {
+    if (doc.exists) {
+      localStorage.setItem('siteConfigCache', JSON.stringify(doc.data()));
+    }
+  }).catch(e => console.warn('背景更新設定檔失敗', e));
+
   return base;
 }
 

@@ -70,9 +70,9 @@ nav a { background: var(--card); color: var(--accent); text-decoration: none; pa
 nav a.active { background: var(--accent); color: #fff; }
 </style>
 
-<script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-<script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-<script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 <script src="site-config.js"></script>
 <script src="firebase-init.js"></script>
 </head>
@@ -453,15 +453,23 @@ function watchQuizReward(user, site){
   db.collection("userData").doc(user.uid).onSnapshot(s => { picks = (s.exists && s.data().quiz) || {}; check(); }, () => {});
   db.collection("coupleData").doc("quiz").onSnapshot(s => { ans = (s.exists && s.data().answers) || {}; check(); }, () => {});
 }
+// -- 本地優先秒開 (Local-First) --
+reloadST(); applyTheme(); applyText(); newCard(); checkAch();
+
 (async () => {
   const user = await authReady; if(!user) return;
-  const [site] = await Promise.all([loadSiteConfig(), cloudSync.pull()]);
-  applySite(site);
-  reloadST();
-  login(); applyTheme(); applyText(); newCard(); checkAch();
-  if(loginMsg) setTimeout(()=>toast(loginMsg),600);
-  save();
-  watchGrant(user); watchQuizReward(user, site);
+  
+  // 在背景同步雲端，不卡住畫面
+  Promise.all([loadSiteConfig(), cloudSync.pull()]).then(([site]) => {
+      applySite(site);
+      reloadST();
+      login(); applyTheme(); applyText(); checkAch();
+      if(!revealed && moves===0) newCard(); else if(revealed) nextBtn.disabled = left()<=0;
+      if(loginMsg) setTimeout(()=>toast(loginMsg),600);
+      save();
+      watchGrant(user); watchQuizReward(user, site);
+  });
+
   /* 別台裝置存檔後,這台自動更新(正在刮的卡不打斷) */
   cloudSync.listen(() => {
     reloadST(); applyTheme(); chips(); checkAch();

@@ -53,9 +53,9 @@ nav a { background: var(--card); color: var(--accent); text-decoration: none; pa
 nav a.active { background: var(--accent); color: #fff; }
 </style>
 
-<script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-<script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-<script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 <script src="site-config.js"></script>
 <script src="firebase-init.js"></script>
 </head>
@@ -113,9 +113,7 @@ function award(id){
   if(Object.keys(S.park.g).length>=3){ const b = S.bonus && S.bonus.d===tk() ? S.bonus.n : 0; S.bonus = {d:tk(),n:b+1}; toast("🎁 三顆星集滿!回刮刮樂,今天多一張"); }
   else toast("⭐ 獲得今日星星!");
   try { cloudSync.push(JSON.stringify(S)); } catch(_) { toast("儲存時發生錯誤"); }
-  // Local first execution
-hub();
-if (document.getElementById('loading')) document.getElementById('loading').style.display = 'none';
+  hub();
 }
 
 /* ---------- 大廳 ---------- */
@@ -239,12 +237,8 @@ GAMES.dice = el => {
   const user = await authReady; if(!user) return;
   await cloudSync.pull();
   const theme = () => { document.documentElement.dataset.theme = THEMES[load().theme||0] || ""; };
-  theme(); // Local first execution
-hub();
-if (document.getElementById('loading')) document.getElementById('loading').style.display = 'none';
-  cloudSync.listen(() => { theme(); if($("g").hidden) // Local first execution
-hub();
-if (document.getElementById('loading')) document.getElementById('loading').style.display = 'none'; });   // 正在玩遊戲時不重畫
+  theme(); hub();
+  cloudSync.listen(() => { theme(); if($("g").hidden) hub(); });   // 正在玩遊戲時不重畫
 })();
 
 </script>
