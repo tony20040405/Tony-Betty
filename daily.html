@@ -48,7 +48,7 @@ textarea{height:90px;resize:none}
   const site = await loadSiteConfig();
   const $ = id => document.getElementById(id);
   const qa = (site.qaBank && site.qaBank.length) ? site.qaBank : site.dailyQuestions;
-  const ch = site.choices || [];
+  const ch = (site.choices || []).map(c => Array.isArray(c) ? c : c.split('|'));   // Firestore 不支援巢狀陣列,所以存成 "A|B" 字串
   if (site.names) { $('lb-boy').textContent = '👦 ' + site.names.boy + '的回答:'; $('lb-girl').textContent = '👧 ' + site.names.girl + '的回答:'; }
 
   const t = new Date();
