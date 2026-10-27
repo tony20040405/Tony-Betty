@@ -1,7 +1,7 @@
 /* 網站預設內容。後台(admin.html)存到雲端的設定會覆蓋這裡的同名欄位。 */
 const DEFAULT_CONFIG = {
   names: { boy: "定宇本寶", girl: "寶鼻小寶" },
-  dates: { start: "2025-11-11", anniversary: "2026-11-11", armyStart: "2026-03-01", armyEnd: "2026-06-30" },
+  dates: { start: "2025-11-11", anniversary: "2026-11-11", armyStart: "2027-01-01", armyEnd: "2027-02-28" },
   timeline: [
     { date: "2025年 萬聖節 🎃", title: "我們的相遇", desc: "在這個特別的節日，我們認識了彼此，這是所有故事的開端。" },
     { date: "2025年 11月 11日 💖", title: "正式在一起", desc: "我們決定牽起彼此的手，成為對方專屬的寶鼻。光棍節不再孤單，因為我們擁有了彼此。" },
