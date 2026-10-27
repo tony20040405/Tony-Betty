@@ -251,7 +251,8 @@ function pick(){
   if(cfg.anniversary && Math.abs(Math.round((day0(cfg.anniversary)-todayD())/864e5))<=1 && !ST.sp[cfg.anniversary]) return specialObj();
   if(cfg.letter && Math.random()<.04) return letterObj();
   let pool = cfg.prizes.filter(p=>p.t && Number(p.w)>0);
-  const rc = ST.recent||[], fresh = pool.filter(p=>!rc.includes(p.t)); if(fresh.length) pool = fresh;
+  // 過濾掉所有已經抽過的獎品，保證完全不重複
+  const fresh = pool.filter(p => !ST.got[p.t]); if(fresh.length) pool = fresh;
   if(ST.miss>=4){ const hi = pool.filter(p=>p.r!=="N"); if(hi.length) pool = hi; }
   let r = Math.random()*pool.reduce((s,p)=>s+Number(p.w),0);
   for(const p of pool){ r -= Number(p.w); if(r<=0) return p; } return pool[pool.length-1];
