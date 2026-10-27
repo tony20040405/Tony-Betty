@@ -39,7 +39,7 @@
     <button id="btn-save">儲存設定到雲端 ☁️</button>
     <button class="g" id="btn-reload">重新載入雲端版本</button>
     <button class="g" id="btn-reset">還原為預設值</button>
-    <button class="g" id="btn-clear">🗑️ 重設我的抽獎紀錄</button>
+    
   </div>
   <p id="status"></p>
 </div>
@@ -63,6 +63,15 @@
   <div id="quiz-list"></div>
   <button id="btn-quiz" style="margin-top:12px">儲存答案 ☁️</button>
   <p id="quiz-status" style="font-weight:bold;color:var(--accent);min-height:1.2em"></p>
+</div>
+
+<div class="panel" style="margin-top:20px">
+  <h2>🗑️ 重設帳號抽獎紀錄</h2>
+  <p class="hint">請輸入對方的帳號 UID（請至 Firebase 後台 → Authentication 複製）。若不填寫，則預設清除您自己的紀錄。</p>
+  <div style="display:flex; gap:8px; align-items:center;">
+    <input type="text" id="target-uid" placeholder="請輸入 UID (留白=清空自己)" style="flex:1; margin:0;">
+    <button class="g" id="btn-clear" style="margin:0; padding:12px 18px; white-space:nowrap;">確定重設</button>
+  </div>
 </div>
 <script>
 (async () => {
@@ -126,14 +135,30 @@
     } catch (e) { say('儲存失敗:' + e.message); }
   };
   $('btn-clear').onclick = async () => {
-    if (!confirm('確定要清除【目前登入帳號】的刮刮樂與遊樂園進度嗎?\n(所有裝置都會被清空,無法復原!)')) return;
-    say('正在清除雲端紀錄...');
+    const targetUid = $('target-uid') ? $('target-uid').value.trim() : '';
+    const uidToClear = targetUid || user.uid;
+    const isSelf = (uidToClear === user.uid);
+    
+    const msg = isSelf 
+      ? '確定要清除【您自己】的紀錄嗎?\n(無法復原!)' 
+      : `確定要清除指定帳號【${uidToClear}】的紀錄嗎?\n(對方下次開啟網頁時將被清空，無法復原!)`;
+      
+    if (!confirm(msg)) return;
+    say(`正在清除 ${isSelf ? '自己' : '對方'} 的雲端紀錄...`);
     try {
       const at = Date.now();
-      await db.collection('userData').doc(user.uid).set({ sc2: '{}', updatedAt: at }, { merge: true });
-      localStorage.setItem('sc2', '{}'); localStorage.setItem('sc2At', String(at));
-      alert('紀錄已清除!即將回到首頁。'); location.href = 'index.html';
-    } catch (e) { say('清除失敗:' + e.message); }
+      await db.collection('userData').doc(uidToClear).set({ sc2: '{}', updatedAt: at }, { merge: true });
+      if (isSelf) {
+        localStorage.setItem('sc2', '{}'); localStorage.setItem('sc2At', String(at));
+        alert('自己的紀錄已清除!即將回到首頁。'); location.href = 'index.html';
+      } else {
+        alert('✅ 指定帳號紀錄已清除！對方下次打開網頁就會生效。');
+        say('✅ 指定帳號清除成功！');
+        $('target-uid').value = '';
+      }
+    } catch (e) { 
+      say('清除失敗:' + e.message + ' (請確認 Firestore Rules 是否允許管理員修改他人資料)'); 
+    }
   };
 })();
 </script>
