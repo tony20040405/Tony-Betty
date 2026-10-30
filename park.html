@@ -141,7 +141,16 @@ const LIST = [
   {id:"generator",e:"💬",t:"專屬情話",d:"每天聽一句專屬撩妹金句"},
   {id:"color",e:"🎨",t:"找不同",d:"找出顏色不一樣的方塊"},
   {id:"mood",e:"📝",t:"今日心情",d:"記錄今天的心情拿星星"},
-  {id:"stopwatch",e:"⏱️",t:"盲測 11:11",d:"矇眼按停在 11.11 秒"}
+  {id:"stopwatch",e:"⏱️",t:"盲測 11:11",d:"矇眼按停在 11.11 秒"},
+  {id:"guess",e:"🔢",t:"猜數字",d:"7 次內猜中",s:1},
+  {id:"whack",e:"🐹",t:"打地鼠",d:"20 秒打 12 隻",s:1},
+  {id:"react",e:"⚡",t:"反應速度",d:"變綠立刻點",s:1},
+  {id:"order",e:"🔟",t:"數字順序",d:"25 秒點完 1~16",s:1},
+  {id:"ttt",e:"⭕",t:"井字遊戲",d:"贏或平手過關",s:1},
+  {id:"math",e:"➗",t:"心算快答",d:"30 秒答對 8 題",s:1},
+  {id:"odd",e:"🎨",t:"找不同色",d:"點顏色不一樣的",s:1},
+  {id:"words",e:"🔤",t:"愛的詞語",d:"把字排回正確詞",s:1},
+  {id:"lights",e:"💡",t:"熄燈遊戲",d:"全部熄滅",s:1}
 ];
 function hub(){
   stopAll(); $("g").hidden = true; $("hub").hidden = false;
@@ -550,6 +559,102 @@ GAMES.stopwatch = el => {
     }
   };
 };
+
+/* ---------- 新增 10 關 ---------- */
+const BT = "height:56px;font-size:1.2rem;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--fg)";
+const GR = (id, cols, gap) => `<div id="${id}" style="display:grid;grid-template-columns:${cols};gap:${gap||8}px;margin:12px 0"></div>`;
+const tick = (n, fail) => { let t = n; timers.push(setInterval(() => { $("sw-time") ? $("sw-time").textContent = --t : null; if(t<=0){ stopAll(); fail(); } }, 1000)); };
+
+GAMES.guess = el => {
+  const n = 1 + Math.random()*100|0; let left = 7;
+  el.innerHTML = `<div class="info">我想了 1~100 的數字,7 次內猜中!剩 <b id="l">7</b> 次</div><input id="v" type="number" style="width:100%;padding:10px;border-radius:12px;border:2px solid var(--line);font-size:1rem;margin-bottom:10px;"><button class="b" id="go" style="width:100%">猜</button><div class="res" id="rs"></div>`;
+  $("go").onclick = () => { const v = +$("v").value; if(!v) return; if(v === n){ award("guess"); return; }
+    $("l").textContent = --left; $("rs").textContent = v < n ? "再大一點 ⬆️" : "再小一點 ⬇️";
+    if(!left){ $("rs").textContent = "💔 答案是 "+n+",重新進入這關再挑戰"; $("go").disabled = true; } $("v").value = ""; };
+};
+
+GAMES.whack = el => {
+  let sc = 0, run = false, cur = -1;
+  el.innerHTML = `<div class="info">時間 <b id="sw-time">20</b> ・ 打到 <b id="sc">0</b>/12 隻 🐹</div>${GR("ar","repeat(3,1fr)")}<button class="b" id="go">開始</button><div class="res" id="rs"></div>`;
+  const cs = [...Array(9)].map((_,k) => { const b = document.createElement("button"); b.style.cssText = "height:70px;font-size:2rem;border-radius:14px;border:2px solid var(--line);background:var(--card)";
+    b.onclick = () => { if(run && k === cur){ $("sc").textContent = ++sc; cur = -1; b.textContent = ""; if(sc >= 12){ run = false; stopAll(); award("whack"); } } };
+    $("ar").appendChild(b); return b; });
+  $("go").onclick = () => { if(run) return; run = true; sc = 0; $("sc").textContent = 0; $("go").hidden = true; $("rs").textContent = "";
+    timers.push(setInterval(() => { cs.forEach(c => c.textContent = ""); cur = Math.random()*9|0; cs[cur].textContent = "🐹"; }, 750));
+    tick(20, () => { run = false; $("rs").textContent = "時間到!再來一次"; $("go").hidden = false; $("go").textContent = "再玩"; }); };
+};
+
+GAMES.react = el => {
+  let s = 0, t0 = 0, ok = 0;
+  el.innerHTML = `<div class="info">變綠色立刻點!需要連續 3 次低於 0.6 秒</div><button id="pad" style="width:100%;height:140px;border:0;border-radius:18px;background:#ff6b8b;color:#fff;font-size:1.2rem;font-weight:700">點我開始</button><div class="res" id="rs"></div>`;
+  const pad = $("pad");
+  pad.onclick = () => {
+    if(s === 0){ s = 1; pad.style.background = "#ff6b8b"; pad.textContent = "等待變綠..."; timers.push(setTimeout(() => { s = 2; t0 = performance.now(); pad.style.background = "#06d6a0"; pad.textContent = "現在點!"; }, 1000 + Math.random()*2500)); }
+    else if(s === 1){ stopAll(); s = 0; ok = 0; pad.textContent = "太早了,點一下重新開始"; }
+    else { const ms = Math.round(performance.now() - t0); s = 0; pad.style.background = "#ff6b8b"; pad.textContent = "再點一次";
+      if(ms < 600){ ok++; $("rs").textContent = ms+" ms ✅ ("+ok+"/3)"; if(ok >= 3){ award("react"); return; } } else { ok = 0; $("rs").textContent = ms+" ms 太慢了,重來"; } }
+  };
+};
+
+GAMES.order = el => {
+  let nx = 1, run = false;
+  el.innerHTML = `<div class="info">時間 <b id="sw-time">25</b> ・ 依序點 1~16</div>${GR("ar","repeat(4,1fr)")}<button class="b" id="go">開始</button><div class="res" id="rs"></div>`;
+  $("go").onclick = () => { nx = 1; run = true; $("go").hidden = true; $("rs").textContent = ""; $("ar").textContent = "";
+    shuffle([...Array(16)].map((_,i) => i+1)).forEach(n => { const b = document.createElement("button"); b.textContent = n; b.style.cssText = BT;
+      b.onclick = () => { if(run && n === nx){ b.style.visibility = "hidden"; if(++nx > 16){ run = false; stopAll(); award("order"); } } }; $("ar").appendChild(b); });
+    tick(25, () => { run = false; $("rs").textContent = "時間到!"; $("go").hidden = false; $("go").textContent = "再玩"; }); };
+};
+
+GAMES.ttt = el => {
+  const b = Array(9).fill(""), W = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]]; let over = false;
+  el.innerHTML = `<div class="info">妳是 ❌ 先下!贏或平手就過關</div>${GR("ar","repeat(3,1fr)")}<div class="res" id="rs"></div>`;
+  const win = p => W.some(w => w.every(i => b[i] === p));
+  const find = p => { for(const w of W){ const e = w.filter(i => !b[i]); if(e.length === 1 && w.filter(i => b[i] === p).length === 2) return e[0]; } return -1; };
+  const draw = () => { $("ar").textContent = ""; b.forEach((v,i) => { const c = document.createElement("button"); c.textContent = v; c.style.cssText = "height:70px;font-size:2rem;border-radius:14px;border:2px solid var(--line);background:var(--card)"; c.onclick = () => play(i); $("ar").appendChild(c); }); };
+  const play = i => { if(over || b[i]) return; b[i] = "❌";
+    if(win("❌") || b.every(Boolean)){ over = true; draw(); award("ttt"); return; }
+    let m = find("⭕"); if(m < 0) m = find("❌"); if(m < 0) m = !b[4] ? 4 : rnd(b.map((v,k) => v ? -1 : k).filter(k => k >= 0));
+    b[m] = "⭕"; if(win("⭕")){ over = true; $("rs").textContent = "💔 輸了,重新進入這關再試"; } else if(b.every(Boolean)){ over = true; draw(); award("ttt"); return; } draw(); };
+  draw();
+};
+
+GAMES.math = el => {
+  let ok = 0, a = 0;
+  el.innerHTML = `<div class="info">時間 <b id="sw-time">30</b> ・ 答對 <b id="sc">0</b>/8</div><div id="q" style="font-size:1.8rem;margin:12px 0;text-align:center"></div>${GR("ar","1fr 1fr")}<div class="res" id="rs"></div>`;
+  const nq = () => { const x = 2 + Math.random()*12|0, y = 2 + Math.random()*12|0, op = rnd(["+","-","×"]); a = op === "+" ? x+y : op === "-" ? x-y : x*y; $("q").textContent = x+" "+op+" "+y+" = ?";
+    $("ar").textContent = ""; shuffle([a, a+1, a-1, a + 2 + (Math.random()*5|0)].filter((v,i,s) => s.indexOf(v) === i)).forEach(v => { const c = document.createElement("button"); c.textContent = v; c.style.cssText = BT;
+      c.onclick = () => { if(v === a){ $("sc").textContent = ++ok; if(ok >= 8){ stopAll(); award("math"); return; } } nq(); }; $("ar").appendChild(c); }); };
+  nq(); tick(30, () => { $("ar").textContent = ""; $("rs").textContent = "時間到!重新進入這關再試"; });
+};
+
+GAMES.odd = el => {
+  let r = 0;
+  el.innerHTML = `<div class="info">時間 <b id="sw-time">25</b> ・ 第 <b id="sc">1</b>/8 關:點顏色不一樣的</div>${GR("ar","repeat(5,1fr)",6)}<div class="res" id="rs"></div>`;
+  const nr = () => { const h = Math.random()*360|0, d = Math.max(5, 18 - r*2), k = Math.random()*25|0; $("ar").textContent = "";
+    for(let i = 0; i < 25; i++){ const b = document.createElement("button"); b.style.cssText = `height:52px;border:0;border-radius:10px;background:hsl(${h},70%,${i === k ? 60-d : 60}%)`;
+      b.onclick = () => { if(i === k){ if(++r >= 8){ stopAll(); award("odd"); return; } $("sc").textContent = r+1; nr(); } }; $("ar").appendChild(b); } };
+  nr(); tick(25, () => { $("ar").textContent = ""; $("rs").textContent = "時間到!重新進入這關再試"; });
+};
+
+GAMES.words = el => {
+  const W = ["火鍋吃到飽","電影約會","牽手散步","抱抱親親","一起旅行"]; let i = 0;
+  el.innerHTML = `<div class="info">把字依序點回正確的詞(<b id="sc">1</b>/5)</div><div id="ans" style="font-size:1.6rem;min-height:2.2rem;text-align:center;letter-spacing:4px;color:var(--accent);font-weight:bold;margin-bottom:10px;"></div><div id="ar" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px 0"></div>`;
+  const nw = () => { const w = W[i]; let p = 0; $("ans").textContent = ""; $("ar").textContent = "";
+    shuffle([...w]).forEach(ch => { const b = document.createElement("button"); b.textContent = ch; b.style.cssText = BT + ";width:52px";
+      b.onclick = () => { if(ch === w[p]){ $("ans").textContent += ch; b.hidden = true; if(++p === w.length){ if(++i >= W.length){ award("words"); return; } $("sc").textContent = i+1; nw(); } } else b.style.borderColor = "red"; }; $("ar").appendChild(b); }); };
+  nw();
+};
+
+GAMES.lights = el => {
+  const s = Array(9).fill(0);
+  el.innerHTML = `<div class="info">點一格會讓它和上下左右一起反轉,全部熄滅就過關 💡</div>${GR("ar","repeat(3,80px)")}`; $("ar").style.justifyContent = "center";
+  const tg = i => [i, i%3 ? i-1 : -1, i%3 < 2 ? i+1 : -1, i-3, i+3].forEach(j => { if(j >= 0 && j < 9) s[j] ^= 1; });
+  for(let k = 0; k < 6; k++) tg(Math.random()*9|0); if(s.every(v => !v)) tg(4);
+  const dr = () => { $("ar").textContent = ""; s.forEach((v,i) => { const b = document.createElement("button"); b.style.cssText = `height:80px;border-radius:14px;border:0;font-size:1.8rem;background:${v ? "#ffd166" : "var(--line)"}`; b.textContent = v ? "💡" : "";
+    b.onclick = () => { tg(i); if(s.every(x => !x)){ award("lights"); return; } dr(); }; $("ar").appendChild(b); }); };
+  dr();
+};
+
 /* 先確認登入並讀完雲端存檔,再顯示大廳 */
 (async () => {
   const user = await authReady; if(!user) return;
