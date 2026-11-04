@@ -72,8 +72,8 @@ textarea.my-input{border-color:rgba(232,85,122,.45)}
   </div>
 
   <div class="ans-box">
-    <label id="lb-boy">👦 定宇本寶的回答:</label>
-    <textarea id="ans-boy" placeholder="定宇請在此輸入心裡的話..."></textarea>
+    <label id="lb-boy">👦 本寶的回答:</label>
+    <textarea id="ans-boy" placeholder="本寶請在此輸入心裡的話..."></textarea>
   </div>
   <div class="ans-box">
     <label id="lb-girl">👧 寶鼻小寶的回答:</label>
@@ -93,7 +93,7 @@ textarea.my-input{border-color:rgba(232,85,122,.45)}
   const ch = (site.choices || []).map(c => Array.isArray(c) ? c : c.split('|')); // Firestore 存成 "A|B" 字串
 
   const isTony = isAdminUser(user);
-  const boyName = (site.names && site.names.boy) || '定宇本寶';
+  const boyName = (site.names && site.names.boy) || '本寶';
   const girlName = (site.names && site.names.girl) || '寶鼻小寶';
 
   $('lb-boy').textContent = '👦 ' + boyName + '的回答:' + (isTony ? ' (你)' : '');

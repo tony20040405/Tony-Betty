@@ -172,10 +172,10 @@ nav a.active { background: var(--accent); color: #fff; }
 <!-- 浪漫承諾約定券兌換彈窗 (Voucher Ticket Modal) -->
 <div class="voucher-overlay" id="voucherModal" hidden>
   <div class="voucher-card" id="voucherCard">
-    <div class="voucher-header">定宇 & 小寶 專屬承諾約定券</div>
+    <div class="voucher-header">本寶 & 寶鼻 專屬承諾約定券</div>
     <div class="voucher-badge" id="vBadge">傳說級獎品</div>
     <div class="voucher-title" id="vTitle">✨ 陪伴去吃宵夜</div>
-    <div class="voucher-desc" id="vDesc">小寶專屬承諾，憑此券可向定宇隨時兌換！願賭服輸，不得反悔喔～💖</div>
+    <div class="voucher-desc" id="vDesc">寶鼻專屬承諾，憑此券可向本寶隨時兌換！願賭服輸，不得反悔喔～💖</div>
     <div class="voucher-rest" id="vRest">剩餘持有：1 張</div>
     <div class="voucher-stamp" id="vStamp">💮 已驗證兌換<br><small>小寶專用・不得反悔</small></div>
     <div class="btns" style="margin-top:14px; gap:10px;">
@@ -189,7 +189,7 @@ nav a.active { background: var(--accent); color: #fff; }
 <div class="voucher-overlay" id="pwaModal" hidden>
   <div class="voucher-card" style="text-align:center; max-width:360px;">
     <div style="font-size:2.8rem; margin-bottom:8px;">💖</div>
-    <div class="voucher-header">定宇 & 小寶 專屬空間</div>
+    <div class="voucher-header">本寶 & 寶鼻 專屬空間</div>
     <h2 style="margin:4px 0 8px; color:var(--accent); font-size:1.35rem;">加到手機桌面當 App 隨開隨玩</h2>
     <p style="font-size:0.9rem; color:var(--muted); margin:0 0 16px;">免去 App Store，一鍵即可擁有全螢幕 App！</p>
     
@@ -216,6 +216,7 @@ nav a.active { background: var(--accent); color: #fff; }
 
 <script>
 /* 取得全域初始設定 (優先使用 site-config.js 中的完整 800+ 獎品庫與設定) */
+function isLegacyPrizes(arr){ if(!Array.isArray(arr) || !arr.length) return true; return arr.some(p => p.t && (p.t.startsWith("No.") || p.t.includes("軍中遠端版") || p.t.includes("定宇") || (p.n && p.n.includes("定宇")))); }
 function getInitialConfig(){
   const base = (typeof DEFAULT_CONFIG !== "undefined" && DEFAULT_CONFIG.scratchcard)
     ? JSON.parse(JSON.stringify(DEFAULT_CONFIG.scratchcard))
@@ -229,9 +230,7 @@ function getInitialConfig(){
   try {
     const cached = JSON.parse(localStorage.getItem('siteConfigCache') || 'null');
     if (cached && cached.scratchcard) {
-      if (Array.isArray(cached.scratchcard.prizes) && (cached.scratchcard.prizes.length > 150 || (cached.scratchcard.prizes[0] && cached.scratchcard.prizes[0].t && cached.scratchcard.prizes[0].t.includes('No.')))) {
-        delete cached.scratchcard.prizes;
-      }
+      if (isLegacyPrizes(cached.scratchcard.prizes)) { delete cached.scratchcard.prizes; }
       Object.assign(base, cached.scratchcard);
       if (!Array.isArray(base.prizes) || !base.prizes.length) {
         base.prizes = (typeof DEFAULT_CONFIG !== "undefined" && DEFAULT_CONFIG.scratchcard && DEFAULT_CONFIG.scratchcard.prizes) || [];
@@ -333,7 +332,7 @@ if($("titleHeart")) {
 但妳要知道，我愛妳的心思，就跟這個彩蛋一樣，藏在每一個妳看得到、或看不到的地方。
 
 等我回來，給妳一個最大最大的擁抱。
-愛妳的定宇 💖`, 
+愛妳的本寶 💖`, 
                 r: "L", letter: true
             };
             showModal(eggLetter);
@@ -412,7 +411,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if($("colSearch")) $("colSearch").addEventListener("input", () => { 
         const kw = $("colSearch").value.trim();
         // 隱藏彩蛋一
-        if(kw === "我愛定宇" || kw === "520") {
+        if(kw === "我愛本寶" || kw === "我愛定宇" || kw === "520") {
             confetti({k: 100}); // 玫瑰花瓣雨 (借用煙火特效，數量調多)
             $("colSearch").value = ""; // 清空
             toast("🌹 解鎖隱藏彩蛋！獲得終極神券！");
@@ -682,14 +681,14 @@ function triggerMissYou(e){
   spawnHearts(rect.left + 30, rect.top + 10, 8);
   
   const quotes = [
-    "定宇在想小寶了！好想抱抱妳～🥰",
-    "叮咚！已向定宇發送 100 萬顆愛心！💖",
+    "本寶在想寶鼻了！好想抱抱妳～🥰",
+    "叮咚！已向本寶發送 100 萬顆愛心！💖",
     "收到小寶的想念訊號！今天也是超級愛妳的一天～✨",
-    "心電感應中... 定宇正在想著可愛的小寶 💌",
+    "心電感應中... 本寶正在想著可愛的寶鼻 💌",
     "想念指數 +1！不管相隔多遠，心永遠在一起喔～🌸",
     "傳送一個隔空親親給寶鼻 💋",
     "想妳想妳想妳！最喜歡我們家小寶了 🥺",
-    "定宇正在看著妳的照片偷偷笑呢 📸"
+    "本寶正在看著妳的照片偷偷笑呢 📸"
   ];
   const q = quotes[Math.floor(Math.random() * quotes.length)];
   toast(q);
@@ -708,7 +707,7 @@ function openVoucher(p, rec){
   $("vBadge").textContent = `${T.n}級獎品`;
   $("vBadge").style.background = T.c;
   $("vTitle").textContent = `${p.e} ${p.t}`;
-  $("vDesc").textContent = p.n || "小寶專屬承諾，憑此券可向定宇隨時兌換！願賭服輸，不得反悔喔～💖";
+  $("vDesc").textContent = p.n || "寶鼻專屬承諾，憑此券可向本寶隨時兌換！願賭服輸，不得反悔喔～💖";
   $("vRest").textContent = `剩餘持有：${rest} 張 (已使用 ${rec.u || 0} 張)`;
   
   const stamp = $("vStamp");
@@ -757,15 +756,15 @@ function redeemActiveVoucher(){
   btn.disabled = true;
   btn.textContent = "✅ 已成功兌換";
   
-  const msg = `💌【小寶向定宇兌換約定憑證】\n✨ 獎項：${p.e} ${p.t}\n📜 承諾：${p.n || '說好不反悔喔！'}\n⏰ 兌換時間：${new Date().toLocaleString('zh-TW')}\n👉 定宇必須願賭服輸，立刻為小寶兌現承諾！😘💕`;
+  const msg = `💌【寶鼻向本寶兌換約定憑證】\n✨ 獎項：${p.e} ${p.t}\n📜 承諾：${p.n || '說好不反悔喔！'}\n⏰ 兌換時間：${new Date().toLocaleString('zh-TW')}\n👉 本寶必須願賭服輸，立刻為寶鼻兌現承諾！😘💕`;
   if(navigator.share){
     navigator.share({ text: msg }).catch(() => {});
   } else {
     try {
       navigator.clipboard.writeText(msg);
-      toast("💮 兌換成功！已複製甜蜜約定訊息，快去 LINE 傳給定宇吧 💌");
+      toast("💮 兌換成功！已複製甜蜜約定訊息，快去 LINE 傳給本寶吧 💌");
     } catch(_) {
-      toast("💮 兌換成功！截圖傳給定宇兌現吧 💌");
+      toast("💮 兌換成功！截圖傳給本寶兌現吧 💌");
     }
   }
 }
@@ -891,14 +890,12 @@ function award(w){
 /* ---------- 啟動:先確認登入、讀完雲端設定與存檔,才開始遊戲 ---------- */
 function applySite(site){
   const sc = site.scratchcard ? JSON.parse(JSON.stringify(site.scratchcard)) : {};
-  if (Array.isArray(sc.prizes) && (sc.prizes.length > 150 || (sc.prizes[0] && sc.prizes[0].t && sc.prizes[0].t.includes('No.')))) {
-    delete sc.prizes;
-  }
+  if (isLegacyPrizes(sc.prizes)) { delete sc.prizes; }
   cfg = Object.assign(JSON.parse(JSON.stringify(DEFAULT)), sc);
   if(!Array.isArray(cfg.prizes) || !cfg.prizes.length) cfg.prizes = DEFAULT.prizes;
   if(site.dates){ if(site.dates.start) cfg.startDate = site.dates.start; if(site.dates.anniversary) cfg.anniversary = site.dates.anniversary; }
 }
-/* 定宇在後台送的額外刮刮卡:coupleData/bonus.total 比我已領的多,就把差額加到今天的張數 */
+/* 本寶在後台送的額外刮刮卡:coupleData/bonus.total 比我已領的多,就把差額加到今天的張數 */
 function watchGrant(user){
   if(isAdminUser(user)) return;
   db.collection("coupleData").doc("bonus").onSnapshot(snap => {
@@ -908,7 +905,7 @@ function watchGrant(user){
     ST.bonus = {d:tk(), n:(ST.bonus.d===tk()?ST.bonus.n:0)+add};
     ST.grantSeen = total; save(); chips();
     if(!revealed && moves===0) newCard(); else if(revealed) nextBtn.disabled = left()<=0;
-    toast(`🎁 定宇送你 ${add} 張額外刮刮卡!`);
+    toast(`🎁 本寶送你 ${add} 張額外刮刮卡!`);
   }, e => console.warn("讀取額外刮刮卡失敗", e));
 }
 /* 默契問答獎勵:每答對 quizEvery 題,送 1 張今天可刮的卡 */

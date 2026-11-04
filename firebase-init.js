@@ -41,7 +41,7 @@ const authReady = new Promise(resolve => {
     whenDomReady(() => {
       document.querySelectorAll('a[href="admin.html"]').forEach(a => { a.style.display = admin ? 'inline-block' : 'none'; });
     });
-    if (IS_ADMIN_PAGE && !admin) { alert('只有定宇本寶才能進入後台喔!'); location.replace('index.html'); }
+    if (IS_ADMIN_PAGE && !admin) { alert('只有本寶才能進入後台喔!'); location.replace('index.html'); }
   });
 });
 
@@ -51,6 +51,7 @@ function loadSiteConfig(force) {                      // 同一頁只讀一次�
   if (force || !_sitePromise) _sitePromise = _loadSiteConfig();
   return _sitePromise.then(c => JSON.parse(JSON.stringify(c)));
 }
+function isLegacyPrizes(arr){ if(!Array.isArray(arr) || !arr.length) return true; return arr.some(p => p.t && (p.t.startsWith("No.") || p.t.includes("軍中遠端版") || p.t.includes("定宇") || (p.n && p.n.includes("定宇")))); }
 async function _loadSiteConfig() {
   const base = (typeof DEFAULT_CONFIG !== 'undefined') ? JSON.parse(JSON.stringify(DEFAULT_CONFIG)) : {};
   
@@ -58,9 +59,7 @@ async function _loadSiteConfig() {
   try {
     const cached = JSON.parse(localStorage.getItem('siteConfigCache') || 'null');
     if (cached && typeof cached === 'object') {
-      if (cached.scratchcard && Array.isArray(cached.scratchcard.prizes) && (cached.scratchcard.prizes.length > 150 || (cached.scratchcard.prizes[0] && cached.scratchcard.prizes[0].t && cached.scratchcard.prizes[0].t.includes('No.')))) {
-        delete cached.scratchcard.prizes;
-      }
+      if (cached.scratchcard && isLegacyPrizes(cached.scratchcard.prizes)) { delete cached.scratchcard.prizes; }
       Object.keys(cached).forEach(k => {
         const v = cached[k];
         base[k] = (v && typeof v === 'object' && !Array.isArray(v)) ? Object.assign({}, base[k] || {}, v) : v;
@@ -266,7 +265,7 @@ const cloudSync = {
       let doc = await db.collection('userData').doc(user.uid).get();
       let d = doc.exists ? doc.data() : null;
 
-      // 定宇管理員登入時，若自己的 userData 沒有刮刮樂紀錄，自動搜尋小寶的雲端紀錄
+      // 本寶管理員登入時，若自己的 userData 沒有刮刮樂紀錄，自動搜尋小寶的雲端紀錄
       if ((!d || !d.sc2) && isAdminUser(user)) {
         try {
           const allDocs = await db.collection('userData').get();
@@ -468,7 +467,7 @@ async function checkLetters(user) {
 }
 authReady.then(u => { if (u) checkLetters(u); });
 
-/* ---------- 入伍前鎖定:除了刮刮樂、遊樂園,其餘頁面要到入伍當天(armyStart 00:00)才開放;定宇的帳號不受限 ---------- */
+/* ---------- 入伍前鎖定:除了刮刮樂、遊樂園,其餘頁面要到入伍當天(armyStart 00:00)才開放;本寶的帳號不受限 ---------- */
 const LOCK_PAGES = ['timeline', 'daily', 'capsule', 'games', 'quiz', 'army'];
 const PAGE_NAME = (location.pathname.split('/').pop() || 'index.html').replace('.html', '') || 'index';
 const IS_LOCK_PAGE = LOCK_PAGES.includes(PAGE_NAME);
@@ -491,7 +490,7 @@ authReady.then(async user => {
     o.append(
       mk('div', '🔒', 'font-size:3.5rem'),
       mk('h2', '這裡還沒開放喔', 'margin:0;color:var(--accent,#e8557a)'),
-      mk('p', '等定宇入伍那天,這個區域就會自動開啟 💖', 'margin:0;line-height:1.7'),
+      mk('p', '等本寶入伍那天,這個區域就會自動開啟 💖', 'margin:0;line-height:1.7'),
       mk('p', '還有 ' + days + ' 天', 'margin:0;font-size:1.6rem;font-weight:bold;color:var(--accent,#e8557a)')
     );
     const row = document.createElement('div'); row.style.cssText = 'display:flex;gap:10px;margin-top:8px';

@@ -37,7 +37,7 @@
   <a href="#" class="logout" onclick="auth.signOut(); return false;">登出🚪</a>
 </nav>
 <h1>🧠 默契問答</h1>
-<p class="sub">猜猜定宇的答案!每天解鎖一題新題目,答案由定宇揭曉 💖</p>
+<p class="sub">猜猜本寶的答案!每天解鎖一題新題目,答案由本寶揭曉 💖</p>
 <section class="panel" style="text-align:center"><div id="score">讀取中...</div><div class="n" id="unlock"></div></section>
 <section class="panel" id="list"></section>
 <script>
@@ -63,10 +63,10 @@
         box.appendChild(b);
       });
       const st = document.createElement('div'); st.className = 'n';
-      if (p !== undefined && a == null) st.textContent = '⏳ 等定宇揭曉答案';
+      if (p !== undefined && a == null) st.textContent = '⏳ 等本寶揭曉答案';
       if (p !== undefined && a != null) { rev++; if (p === a) right++; st.textContent = p === a ? '🎉 答對了!' : '💔 答案是:' + it.o[a]; }
       box.appendChild(st);
-      if (p !== undefined && a != null && notes[i]) { const n = document.createElement('div'); n.className = 'note'; n.textContent = '定宇說:' + notes[i]; box.appendChild(n); }
+      if (p !== undefined && a != null && notes[i]) { const n = document.createElement('div'); n.className = 'note'; n.textContent = '本寶說:' + notes[i]; box.appendChild(n); }
       list.appendChild(box);
     }
     $('score').textContent = rev ? '默契度 ' + Math.round(right / rev * 100) + '%(' + right + '/' + rev + ')' : '還沒有已揭曉的題目';

@@ -9,7 +9,7 @@
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
 <link rel="manifest" href="manifest.json"><text y='.9em' font-size='90'>💖</text></svg>">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💖</text></svg>">
-<title>定宇的時光膠囊 💌</title>
+<title>本寶的時光膠囊 💌</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
@@ -47,7 +47,7 @@
   <a href="admin.html" style="display:none">後台管理⚙️</a>
   <a href="#" class="logout" onclick="auth.signOut(); return false;">登出🚪</a>
 </nav>
-<h1>🕰️ 定宇的時光膠囊</h1>
+<h1>🕰️ 本寶的時光膠囊</h1>
 <p class="sub" id="top-sub"></p>
 
 <section class="panel">
@@ -87,15 +87,15 @@
 
   let daysLeft, pct;
   if (now < startDate)      { daysLeft = totalDays; pct = 0;   $('top-sub').textContent = '本寶就要出發了,心會一直陪著寶鼻 💖'; }
-  else if (now >= endDate)  { daysLeft = 0;         pct = 100; $('top-sub').textContent = '定宇已經平安退伍啦!這些留言留給想我的時候 💖'; }
+  else if (now >= endDate)  { daysLeft = 0;         pct = 100; $('top-sub').textContent = '本寶已經平安退伍啦!這些留言留給想我的時候 💖'; }
   else                      { daysLeft = Math.ceil((endDate - now) / DAY); pct = (totalDays - daysLeft) / totalDays * 100;
                               $('top-sub').textContent = '即使本寶去當兵了,我的心也一直陪在寶鼻身邊 💖'; }
 
   if (daysLeft > 0) {
-    $('count-text').innerHTML = '距離定宇退伍還有 <span style="color:var(--accent);font-size:1.5rem">' + daysLeft + '</span> 天!';
+    $('count-text').innerHTML = '距離本寶退伍還有 <span style="color:var(--accent);font-size:1.5rem">' + daysLeft + '</span> 天!';
     $('progress-text').textContent = '已經熬過 ' + pct.toFixed(1) + '% 囉,寶鼻再等我一下!';
   } else if (now >= endDate) {
-    $('count-text').textContent = '🎉 定宇退伍啦!';
+    $('count-text').textContent = '🎉 本寶退伍啦!';
     $('progress-text').textContent = '100% 完成,謝謝寶鼻一路等我!';
   } else {
     $('count-text').textContent = '距離入伍還有 ' + Math.ceil((startDate - now) / DAY) + ' 天';
