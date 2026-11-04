@@ -432,18 +432,41 @@ $("colBtn").onclick = () => { $("col").hidden = !$("col").hidden; if(!$("col").h
 /* ---------- 刮刮卡 ---------- */
 const cv = $("cv"), ctx = cv.getContext("2d"), wrap = $("wrap"), nextBtn = $("next"), info = $("info");
 let drawing = false, revealed = false, last = null, moves = 0, cur = null, count = 0, lastNoise = 0;
+
+/* 提取獎品核心主題（自動去除前後贅字、修飾詞與括號有效期限） */
+function coreTheme(t) {
+  if (!t) return '';
+  return t
+    .replace(/^No\.\d+\s*(驚喜[：:])?\s*/i, '')
+    .replace(/^【[^】]+】\s*/, '')
+    .replace(/^(魔法|完美|浪漫|熱情|特製|可愛|深情|溫柔|溫暖|霸氣|滿分|閃亮|偷偷給妳的|專屬的|無限的|心動的|無敵的|超級|甜蜜的|暖心的)[的之]?\s*/, '')
+    .replace(/\s*\([^)]+\)$/, '')
+    .trim();
+}
+
 function pick(){
   if(cfg.anniversary && Math.abs(Math.round((day0(cfg.anniversary)-todayD())/864e5))<=1 && !ST.sp[cfg.anniversary]) return specialObj();
   if(cfg.letter && Math.random()<.04) return letterObj();
   let pool = (cfg.prizes || []).filter(p=>p && p.t && Number(p.w)>0);
   if(!pool.length) pool = (typeof DEFAULT_CONFIG !== "undefined" && DEFAULT_CONFIG.scratchcard && DEFAULT_CONFIG.scratchcard.prizes) || [];
   
-  // 過濾掉所有已經抽過的獎品，保證完全不重複
+  // 1. 優先過濾掉完全抽過且已在收藏庫中的獎品
   const fresh = pool.filter(p => !ST.got || !ST.got[p.t] || ST.got[p.t].n === 0);
   if(fresh.length > 0) pool = fresh;
+
+  // 2. 核心主題冷卻機制：排除最近 15 次抽過的同主題/同類型獎品（例如剛抽過「妳說得對」或「抱抱」，近期不再重複抽到）
+  const recentTopics = (ST.recent || []).slice(-15).map(coreTheme);
+  const freshTopicPool = pool.filter(p => !recentTopics.includes(coreTheme(p.t)));
+  if(freshTopicPool.length >= 8) pool = freshTopicPool;
   
-  if(ST.miss>=4){ const hi = pool.filter(p=>p.r!=="N"); if(hi.length) pool = hi; }
-  const totalW = pool.reduce((s,p)=>s+(Number(p.w)||1),0);
+  // 3. 稀有度保底機制：連續 3 次抽到普通(N)時，強制保底稀有(R)、史詩(E)或傳說(L)
+  if((ST.miss || 0) >= 3){
+    const hi = pool.filter(p => p.r !== "N");
+    if(hi.length) pool = hi;
+  }
+
+  // 4. 加權隨機抽取
+  const totalW = pool.reduce((s,p) => s + (Number(p.w) || 1), 0);
   let r = Math.random() * totalW;
   for(const p of pool){
     r -= (Number(p.w) || 1);
@@ -525,7 +548,7 @@ function reveal(){
   
   ST.pending = null; ST.days[tk()] = (ST.days[tk()]||0)+1;
   const g = ST.got[cur.t] || (ST.got[cur.t] = {n:0,u:0}); g.n++;
-  ST.recent = (ST.recent||[]).concat(cur.t).slice(-9);
+  ST.recent = (ST.recent||[]).concat(cur.t).slice(-20);
   if(cur.special && cfg.anniversary) ST.sp[cfg.anniversary] = 1;
   ST.miss = (cur.r==="N" && !cur.letter && !cur.special) ? ST.miss+1 : 0;
   
