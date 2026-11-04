@@ -58,6 +58,9 @@ async function _loadSiteConfig() {
   try {
     const cached = JSON.parse(localStorage.getItem('siteConfigCache') || 'null');
     if (cached && typeof cached === 'object') {
+      if (cached.scratchcard && Array.isArray(cached.scratchcard.prizes) && (cached.scratchcard.prizes.length > 150 || (cached.scratchcard.prizes[0] && cached.scratchcard.prizes[0].t && cached.scratchcard.prizes[0].t.includes('No.')))) {
+        delete cached.scratchcard.prizes;
+      }
       Object.keys(cached).forEach(k => {
         const v = cached[k];
         base[k] = (v && typeof v === 'object' && !Array.isArray(v)) ? Object.assign({}, base[k] || {}, v) : v;

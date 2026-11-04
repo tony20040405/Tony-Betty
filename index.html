@@ -229,6 +229,9 @@ function getInitialConfig(){
   try {
     const cached = JSON.parse(localStorage.getItem('siteConfigCache') || 'null');
     if (cached && cached.scratchcard) {
+      if (Array.isArray(cached.scratchcard.prizes) && (cached.scratchcard.prizes.length > 150 || (cached.scratchcard.prizes[0] && cached.scratchcard.prizes[0].t && cached.scratchcard.prizes[0].t.includes('No.')))) {
+        delete cached.scratchcard.prizes;
+      }
       Object.assign(base, cached.scratchcard);
       if (!Array.isArray(base.prizes) || !base.prizes.length) {
         base.prizes = (typeof DEFAULT_CONFIG !== "undefined" && DEFAULT_CONFIG.scratchcard && DEFAULT_CONFIG.scratchcard.prizes) || [];
@@ -622,7 +625,18 @@ let loginMsg = "", wAng = 0, spinning = false, tt = 0;
 const letterObj = () => ({e:"💌",t:"情書卡",n:"有一封信要給妳,點開來看 💌",r:"E",letter:true});
 const specialObj = () => ({e:"🎂",t:"紀念日特別卡",n:"今天是我們的日子 💖",r:"L",special:true});
 const wlist = () => (cfg.wheel||[]).map(w=>Object.assign({r:"W"},w));
-const allList = () => cfg.prizes.concat(wlist());
+const allList = () => {
+  const base = (cfg.prizes || []).concat(wlist());
+  if (typeof ST !== "undefined" && ST.got) {
+    const existingTitles = new Set(base.map(p => p.t));
+    Object.keys(ST.got).forEach(k => {
+      if (!existingTitles.has(k) && k !== "情書卡" && k !== "紀念日特別卡") {
+        base.push({ e: "🎟️", t: k, n: "小寶珍貴的歷史收藏", r: "R" });
+      }
+    });
+  }
+  return base;
+};
 const findDef = t => allList().concat([letterObj(),specialObj()]).find(p=>p.t===t);
 function toast(m){ const e = $("toast"); e.textContent = m; e.classList.add("show"); clearTimeout(tt); tt = setTimeout(()=>e.classList.remove("show"),3200); }
 function share(p){
@@ -876,7 +890,11 @@ function award(w){
 
 /* ---------- 啟動:先確認登入、讀完雲端設定與存檔,才開始遊戲 ---------- */
 function applySite(site){
-  cfg = Object.assign(JSON.parse(JSON.stringify(DEFAULT)), site.scratchcard || {});
+  const sc = site.scratchcard ? JSON.parse(JSON.stringify(site.scratchcard)) : {};
+  if (Array.isArray(sc.prizes) && (sc.prizes.length > 150 || (sc.prizes[0] && sc.prizes[0].t && sc.prizes[0].t.includes('No.')))) {
+    delete sc.prizes;
+  }
+  cfg = Object.assign(JSON.parse(JSON.stringify(DEFAULT)), sc);
   if(!Array.isArray(cfg.prizes) || !cfg.prizes.length) cfg.prizes = DEFAULT.prizes;
   if(site.dates){ if(site.dates.start) cfg.startDate = site.dates.start; if(site.dates.anniversary) cfg.anniversary = site.dates.anniversary; }
 }
