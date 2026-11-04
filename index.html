@@ -111,6 +111,7 @@ nav a.active { background: var(--accent); color: #fff; }
 </div>
 
 <h1 id="title"><span id="titleText"></span> <span id="titleHeart" style="cursor:pointer; user-select:none;">💖</span></h1>
+<div style="font-size:0.75rem; color:var(--muted); margin-top:-6px; margin-bottom:12px; display:flex; align-items:center; justify-content:center; gap:6px;"><span>🏡 同居甜蜜生活版 (全新800張)</span><button id="btnForceReloadApp" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:0.75rem; text-decoration:underline;">[手動更新快取]</button></div>
 <p class="sub" id="sub"></p>
 <div class="chips" id="chips"></div>
 <div class="wrap" id="wrap">
@@ -444,6 +445,30 @@ document.addEventListener("DOMContentLoaded", () => {
       toast("✨ 正在重新載入最新 800 張同居卡庫...");
       setTimeout(() => location.reload(true), 500);
     };
+  }
+
+  
+  if ($("btnForceReloadApp")) {
+    $("btnForceReloadApp").onclick = () => {
+      try {
+        localStorage.removeItem("siteConfigCache");
+        localStorage.removeItem("active_pool_version");
+        if (typeof ST !== 'undefined' && ST) { ST.pending = null; save(); }
+        if ('caches' in window) {
+          caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).then(() => {
+            window.location.reload();
+          });
+          return;
+        }
+      } catch(_) {}
+      window.location.reload();
+    };
+  }
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      console.log('Service worker updated, reloading...');
+      window.location.reload();
+    });
   }
 
   if($("btnNextPage")) $("btnNextPage").addEventListener("click", () => { currentPage++; colGrid(); });
