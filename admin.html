@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#ffe3ec">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
+<link rel="manifest" href="manifest.json"><text y='.9em' font-size='90'>💖</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💖</text></svg>">
+<title>後台管理 ⚙️</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+<script src="site-config.js"></script>
+<script src="firebase-init.js"></script>
+<style>
+.panel{width:min(100%,720px)}
+#config-json{height:600px;font:13px/1.4 monospace;white-space:pre;margin-top:8px}
+#status{margin-top:12px;font-weight:bold;color:var(--accent);min-height:1.2em}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html">刮刮樂</a>
+  <a href="park.html">遊樂園</a>
+  <a href="timeline.html">我們的故事</a>
+  <a href="daily.html">每日問答</a>
+  <a href="games.html">小遊戲</a>
+  <a href="quiz.html">默契問答</a>
+  <a href="army.html">當兵倒數</a>
+  <a href="capsule.html">時光膠囊</a>
+  <a href="admin.html" class="active" style="display:none">後台管理⚙️</a>
+  <a href="#" class="logout" onclick="auth.signOut(); return false;">登出🚪</a>
+</nav>
+<h1>⚙️ 後台控制中心</h1>
+<p class="sub">修改全站內容(我們的故事、每日問答、時光膠囊、刮刮樂獎品…),按「儲存」後所有頁面都會更新</p>
+<div class="panel">
+  <h2>📝 網站全局設定 (JSON)</h2>
+  <p class="hint" style="color:var(--accent);font-weight:bold">⚠️ 請只修改【引號 " " 】裡面的字,不要刪到引號、逗號或括號。格式錯誤時不會儲存。</p>
+  <textarea id="config-json" spellcheck="false" placeholder="讀取中..."></textarea>
+  <div class="btns" style="margin-top:16px">
+    <button id="btn-save">儲存設定到雲端 ☁️</button>
+    <button class="g" id="btn-reload">重新載入雲端版本</button>
+    <button class="g" id="btn-reset">還原為預設值</button>
+    
+  </div>
+  <p id="status"></p>
+</div>
+
+<div class="panel" style="margin-top:20px">
+  <h2>🎁 送寶鼻額外刮刮卡</h2>
+  <p class="hint">按下去後,寶鼻那邊會立刻多出幾張「今天」可以刮的卡(她正開著網站就即時收到,沒開的話下次打開時收到)。</p>
+  <div class="btns" style="align-items:center">
+    <select id="bonus-n" style="font-size:1rem;padding:10px;border-radius:12px;border:2px solid var(--line);background:var(--b1);color:var(--fg)">
+      <option value="1">1 張</option><option value="2">2 張</option><option value="3">3 張</option><option value="5">5 張</option><option value="10">10 張</option>
+    </select>
+    <button id="btn-bonus">送出 🎁</button>
+  </div>
+  <p class="hint">累計已送出:<b id="bonus-total">0</b> 張</p>
+  <p id="bonus-status" style="font-weight:bold;color:var(--accent);min-height:1.2em"></p>
+</div>
+
+<div class="panel" style="margin-top:20px">
+  <h2>🧠 默契問答:填妳的答案</h2>
+  <p class="hint">每題選出定宇的真正答案(已預填歷史題),可再寫一句「揭曉時想說的話」。寶鼻答完該題後才會看到結果。</p>
+  <div id="quiz-list"></div>
+  <button id="btn-quiz" style="margin-top:12px">儲存答案 ☁️</button>
+  <p id="quiz-status" style="font-weight:bold;color:var(--accent);min-height:1.2em"></p>
+</div>
+
+<div class="panel" style="margin-top:20px">
+  <h2>📦 存檔即時檢視與備份還原</h2>
+  <p class="hint">可以查看寶鼻目前的抽卡進度、持有獎品，也能一鍵下載備份檔案或還原存檔。</p>
+  <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+    <input type="text" id="inspect-uid" placeholder="請輸入對方的 UID (留白=讀取自己)" style="flex:1; min-width:200px; margin:0;">
+    <button class="g" id="btn-inspect" style="margin:0; padding:10px 16px;">🔍 讀取存檔</button>
+    <button class="g" id="btn-export" style="margin:0; padding:10px 16px;">📥 匯出備份</button>
+    <label class="g" style="margin:0; padding:10px 16px; cursor:pointer; background:var(--card); color:var(--accent); border:1.5px solid var(--accent); border-radius:999px; font-weight:bold; display:inline-block;">
+      📤 匯入還原 <input type="file" id="file-import" accept=".json" style="display:none;">
+    </label>
+  </div>
+  <button class="b" id="btn-scan-all" style="width:100%; margin-top:12px; background:linear-gradient(135deg,#2f8cff,#0066eb); border-radius:14px; padding:12px; font-weight:bold;">🔍 一鍵深度掃描小寶雲端存檔與本機備份 (存檔救援)</button>
+  <div id="scan-results" style="margin-top:12px; display:none;"></div>
+  <div id="inspect-result" style="margin-top:12px; font-size:0.9rem; line-height:1.6; background:var(--b1); padding:12px; border-radius:12px; border:1px solid var(--line); display:none;"></div>
+</div>
+
+<div class="panel" style="margin-top:20px">
+  <h2>🗑️ 重設帳號抽獎紀錄</h2>
+  <p class="hint">請輸入對方的帳號 UID（請至 Firebase 後台 → Authentication 複製）。若不填寫，則預設清除您自己的紀錄。</p>
+  <div style="display:flex; gap:8px; align-items:center;">
+    <input type="text" id="target-uid" placeholder="請輸入 UID (留白=清空自己)" style="flex:1; margin:0;">
+    <button class="g" id="btn-clear" style="margin:0; padding:12px 18px; white-space:nowrap;">確定重設</button>
+  </div>
+</div>
+<script>
+(async () => {
+  const user = await authReady;
+  if (!user || !isAdminUser(user)) return;               // 非管理員:firebase-init.js 會把人導走
+  const $ = id => document.getElementById(id);
+  const say = m => { $('status').textContent = m; };
+  const show = cfg => { $('config-json').value = JSON.stringify(cfg, null, 2); };
+
+  async function load() { say('讀取中...'); show(await loadSiteConfig(true)); say(''); }
+  await load();
+
+  /* 送寶鼻額外刮刮卡:累加 coupleData/bonus.total,寶鼻的網頁會偵測差額並加到她今天的張數 */
+  const bonusRef = db.collection('coupleData').doc('bonus');
+  bonusRef.onSnapshot(s => { $('bonus-total').textContent = s.exists ? Number(s.data().total || 0) : 0; });
+  $('btn-bonus').onclick = async () => {
+    const n = Number($('bonus-n').value), out = $('bonus-status');
+    if (!confirm('要送寶鼻 ' + n + ' 張額外刮刮卡嗎?')) return;
+    out.textContent = '送出中...';
+    try {
+      await bonusRef.set({ total: firebase.firestore.FieldValue.increment(n), updatedAt: Date.now(), lastN: n }, { merge: true });
+      out.textContent = '✅ 已送出 ' + n + ' 張!';
+    } catch (e) { out.textContent = '送出失敗:' + e.message; }
+  };
+
+  /* 默契問答:定宇填答案 */
+  const quizBank = parseQuiz((await loadSiteConfig()).quiz), quizRef = db.collection('coupleData').doc('quiz');
+  let qd = {}; try { const s = await quizRef.get(); qd = s.exists ? s.data() : {}; } catch (e) { console.warn(e); }
+  const qAns = qd.answers || {}, qNotes = qd.notes || {}, qSel = [], qNote = [];
+  quizBank.forEach((it, i) => {
+    const row = document.createElement('div'); row.style.marginBottom = '12px';
+    const l = document.createElement('div'); l.textContent = (i + 1) + '. ' + it.q; l.style.fontWeight = 'bold';
+    const sel = document.createElement('select'); sel.style.cssText = 'width:100%;padding:8px;margin:4px 0;border-radius:10px;border:2px solid var(--line);background:var(--b1);color:var(--fg)';
+    sel.add(new Option('(還沒填)', '')); it.o.forEach((t, j) => sel.add(new Option(t, j)));
+    const cur = qAns[i] !== undefined ? qAns[i] : it.a; sel.value = cur == null ? '' : String(cur);
+    const nt = document.createElement('input'); nt.placeholder = '揭曉時想說的話(選填)'; nt.value = qNotes[i] || '';
+    qSel.push(sel); qNote.push(nt); row.append(l, sel, nt); $('quiz-list').appendChild(row);
+  });
+  $('btn-quiz').onclick = async () => {
+    const answers = {}, notes = {};
+    qSel.forEach((s, i) => { if (s.value !== '') answers[i] = Number(s.value); if (qNote[i].value.trim()) notes[i] = qNote[i].value.trim(); });
+    try { await quizRef.set({ answers, notes, updatedAt: Date.now() }); $('quiz-status').textContent = '✅ 已儲存 ' + Object.keys(answers).length + ' 題答案'; }
+    catch (e) { $('quiz-status').textContent = '儲存失敗:' + e.message; }
+  };
+
+  $('btn-reload').onclick = load;
+  $('btn-reset').onclick = () => {
+    if (confirm('確定要把內容還原成預設值嗎?(按「儲存」之後才會真的上傳)')) { show(DEFAULT_CONFIG); say('已還原為預設值,請按儲存上傳!'); }
+  };
+  $('btn-save').onclick = async () => {
+    let data;
+    try { data = JSON.parse($('config-json').value); }
+    catch (e) { say('❌ JSON 格式有錯誤,請檢查是否少了引號或逗號:' + e.message); return; }
+    if (!data.scratchcard || !Array.isArray(data.scratchcard.prizes) || !data.scratchcard.prizes.length) { say('❌ scratchcard.prizes 不能是空的'); return; }
+    if (!data.dates || !data.dates.armyStart || !data.dates.armyEnd) { say('❌ dates 裡需要 armyStart / armyEnd'); return; }
+    if (Array.isArray(data.choices)) data.choices = data.choices.map(c => Array.isArray(c) ? c.join('|') : c);   // Firestore 不支援巢狀陣列
+    say('儲存中...');
+    try {
+      await db.collection('coupleData').doc('config').set(data);
+      say('✅ 儲存成功!網站內容已更新(其他頁面重新整理即可看到)');
+    } catch (e) { say('儲存失敗:' + e.message); }
+  };
+
+  /* 存檔即時檢視與備份還原 */
+  async function fetchUserDoc(targetUid) {
+    const uid = targetUid || user.uid;
+    const doc = await db.collection('userData').doc(uid).get();
+    if (!doc.exists) return { uid, data: null };
+    return { uid, data: doc.data() };
+  }
+
+  $('btn-inspect').onclick = async () => {
+    const targetUid = ($('inspect-uid') && $('inspect-uid').value.trim()) || user.uid;
+    const resBox = $('inspect-result');
+    resBox.style.display = 'block';
+    resBox.textContent = '讀取中...';
+    try {
+      const { uid, data } = await fetchUserDoc(targetUid);
+      if (!data || !data.sc2) {
+        resBox.innerHTML = `⚠️ 查無存檔資料 (UID: <code>${uid}</code>)`;
+        return;
+      }
+      const st = JSON.parse(data.sc2);
+      const gotCount = Object.keys(st.got || {}).length;
+      let totalTickets = 0, usedTickets = 0;
+      Object.values(st.got || {}).forEach(it => { totalTickets += (it.n || 0); usedTickets += (it.u || 0); });
+      const achCount = Object.keys(st.ach || {}).length;
+      const lastUpdate = data.updatedAt ? new Date(data.updatedAt).toLocaleString('zh-TW') : '未知';
+      
+      resBox.innerHTML = `
+        <b>帳號 UID：</b> <code>${uid}</code><br>
+        <b>最後雲端存檔時間：</b> ${lastUpdate}<br>
+        <b>當前待刮卡 (Pending)：</b> ${st.pending ? `<span style="color:var(--accent);font-weight:bold">${st.pending}</span> <button class="g" id="btn-clear-pending" style="padding:2px 10px;font-size:0.8rem;margin-left:8px;vertical-align:middle;">解除卡死（強制抽新卡）</button>` : '無（已揭曉，下次隨機抽新卡）'}<br>
+        <b>刮中獎品種類：</b> ${gotCount} 種（累計獲得 ${totalTickets} 張，已兌換 ${usedTickets} 張）<br>
+        <b>連續登入天數：</b> ${st.streak?.n || 0} 天（上次：${st.streak?.d || '無'}）<br>
+        <b>解鎖成就數量：</b> ${achCount} 個<br>
+        <b>轉盤總次數：</b> ${st.spins || 0} 次
+      `;
+
+      if ($('btn-clear-pending')) {
+        $('btn-clear-pending').onclick = async () => {
+          if (!confirm(`確定要清除【${uid}】的待刮卡【${st.pending}】嗎？\n清除後對方將直接抽取全新的未抽過獎品！`)) return;
+          st.pending = null;
+          try {
+            await db.collection('userData').doc(uid).set({ sc2: JSON.stringify(st), updatedAt: Date.now() }, { merge: true });
+            alert('✅ 待刮卡已清空！對方下次抽卡將抽取全新獎品。');
+            $('btn-inspect').click();
+          } catch(err) {
+            alert('清除失敗: ' + err.message);
+          }
+        };
+      }
+    } catch (e) {
+      resBox.textContent = '讀取失敗: ' + e.message;
+    }
+  };
+
+  $('btn-export').onclick = async () => {
+    const targetUid = ($('inspect-uid') && $('inspect-uid').value.trim()) || user.uid;
+    try {
+      const { uid, data } = await fetchUserDoc(targetUid);
+      if (!data || !data.sc2) { alert('該帳號目前沒有雲端存檔可匯出！'); return; }
+      const blob = new Blob([data.sc2], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `tony-betty-backup-${uid.slice(0, 6)}-${new Date().toLocaleDateString('sv')}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      alert('匯出失敗: ' + e.message);
+    }
+  };
+
+  /* 一鍵深度掃描雲端與本機所有存檔紀錄 */
+  $('btn-scan-all').onclick = async () => {
+    const resBox = $('scan-results');
+    resBox.style.display = 'block';
+    resBox.innerHTML = '<div style="color:var(--muted); padding:10px;">⏳ 正在深度掃描 Firestore 雲端資料庫與本機所有歷史備份...</div>';
+
+    const findings = [];
+
+    // 1. 掃描 Firestore userData collection
+    try {
+      const snap = await db.collection('userData').get();
+      snap.forEach(doc => {
+        const d = doc.data();
+        let st = {};
+        try { st = JSON.parse(d.sc2 || '{}'); } catch(_) {}
+        const gotList = Object.keys(st.got || {});
+        findings.push({
+          type: 'cloud',
+          source: `☁️ 雲端存檔 (UID: ${doc.id})` + (doc.id === user.uid ? ' [定宇]' : ' [小寶]'),
+          uid: doc.id,
+          raw: d.sc2,
+          gotCount: gotList.length,
+          gotSummary: gotList.slice(0, 5).join('、') + (gotList.length > 5 ? ` 等共 ${gotList.length} 項` : ''),
+          updatedAt: d.updatedAt ? new Date(d.updatedAt).toLocaleString('zh-TW') : '未知'
+        });
+      });
+    } catch(e) {
+      console.warn('掃描雲端失敗:', e);
+    }
+
+    // 2. 掃描本機 localStorage 所有鍵
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && (k.includes('sc2') || k.includes('backup'))) {
+          const raw = localStorage.getItem(k);
+          let st = {};
+          try { st = JSON.parse(raw || '{}'); } catch(_) {}
+          if (st && typeof st === 'object' && st.got) {
+            const gotList = Object.keys(st.got || {});
+            findings.push({
+              type: 'local',
+              source: `💻 本機歷史紀錄 (Key: ${k})`,
+              raw: raw,
+              gotCount: gotList.length,
+              gotSummary: gotList.slice(0, 5).join('、') + (gotList.length > 5 ? ` 等共 ${gotList.length} 項` : ''),
+              updatedAt: '本機快取'
+            });
+          }
+        }
+      }
+    } catch(_) {}
+
+    if (!findings.length) {
+      resBox.innerHTML = '<div style="color:var(--muted); padding:10px;">目前尚未找到任何存檔紀錄。</div>';
+      return;
+    }
+
+    let html = `<div style="font-weight:bold; margin-bottom:10px; color:var(--accent);">🎉 掃描完成！共找到 ${findings.length} 份歷史紀錄：</div>`;
+    findings.forEach((f, idx) => {
+      html += `
+        <div style="background:var(--card); border:1.5px solid var(--line); border-radius:14px; padding:12px; margin-bottom:10px; text-align:left;">
+          <div style="font-weight:bold; font-size:0.95rem; color:var(--fg);">${f.source}</div>
+          <div style="font-size:0.85rem; color:var(--muted); margin:4px 0;">獎品數量：<b>${f.gotCount}</b> 項 ${f.gotCount > 0 ? `(${f.gotSummary})` : '(空)'}</div>
+          <div style="font-size:0.8rem; color:var(--muted); margin-bottom:8px;">時間：${f.updatedAt}</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="g" style="padding:6px 12px; font-size:0.8rem; background:var(--accent); color:#fff; border:none;" onclick="restoreThisRecord(${idx})">📲 一鍵載入並同步此存檔</button>
+            <button class="g" style="padding:6px 12px; font-size:0.8rem;" onclick="exportThisRecord(${idx})">📥 下載 JSON</button>
+          </div>
+        </div>
+      `;
+    });
+    resBox.innerHTML = html;
+
+    window._foundRecords = findings;
+  };
+
+  window.restoreThisRecord = async idx => {
+    const f = window._foundRecords[idx];
+    if (!f || !f.raw) return;
+    if (!confirm(`確定要將【${f.source}】的內容載入並同步到當前帳號嗎？`)) return;
+    
+    // 寫入本機雙存檔
+    localStorage.setItem('sc2', f.raw);
+    localStorage.setItem('sc2_backup', f.raw);
+    localStorage.setItem('sc2At', String(Date.now()));
+    
+    // 寫入雲端目前登入的帳號
+    await db.collection('userData').doc(user.uid).set({
+      sc2: f.raw,
+      updatedAt: Date.now()
+    }, { merge: true });
+
+    alert('✅ 存檔還原成功！已寫入本機並同步至雲端！');
+    $('btn-inspect').click();
+  };
+
+  window.exportThisRecord = idx => {
+    const f = window._foundRecords[idx];
+    if (!f || !f.raw) return;
+    const blob = new Blob([f.raw], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `tony-betty-save-${Date.now()}.json`;
+    a.click();
+  };
+
+  $('file-import').onchange = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const targetUid = ($('inspect-uid') && $('inspect-uid').value.trim()) || user.uid;
+    if (!confirm(`確定要將檔案【${file.name}】還原至帳號【${targetUid}】嗎？`)) {
+      e.target.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const text = evt.target.result;
+        JSON.parse(text); // 驗證 JSON 格式
+        const at = Date.now();
+        await db.collection('userData').doc(targetUid).set({ sc2: text, updatedAt: at }, { merge: true });
+        alert('✅ 存檔還原成功！對方開啟網頁時將自動同步該版本。');
+        $('btn-inspect').click();
+      } catch (err) {
+        alert('❌ 還原失敗，請確認檔案格式是否正確: ' + err.message);
+      } finally {
+        e.target.value = '';
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  $('btn-clear').onclick = async () => {
+    const targetUid = $('target-uid') ? $('target-uid').value.trim() : '';
+    const uidToClear = targetUid || user.uid;
+    const isSelf = (uidToClear === user.uid);
+    
+    const msg = isSelf 
+      ? '確定要清除【您自己】的紀錄嗎?\n(無法復原!)' 
+      : `確定要清除指定帳號【${uidToClear}】的紀錄嗎?\n(對方下次開啟網頁時將被清空，無法復原!)`;
+      
+    if (!confirm(msg)) return;
+    say(`正在清除 ${isSelf ? '自己' : '對方'} 的雲端紀錄...`);
+    try {
+      const at = Date.now();
+      await db.collection('userData').doc(uidToClear).set({ sc2: '{}', updatedAt: at, resetAt: at }, { merge: true });
+      if (isSelf) {
+        localStorage.setItem('sc2', '{}'); localStorage.setItem('sc2_backup', '{}'); localStorage.setItem('sc2At', String(at));
+        alert('自己的紀錄已清除!即將回到首頁。'); location.href = 'index.html';
+      } else {
+        alert('✅ 指定帳號紀錄已清除！對方下次打開網頁就會生效。');
+        say('✅ 指定帳號清除成功！');
+        $('target-uid').value = '';
+      }
+    } catch (e) { 
+      say('清除失敗:' + e.message + ' (請確認 Firestore Rules 是否允許管理員修改他人資料)'); 
+    }
+  };
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="每日問答">
+<meta name="theme-color" content="#ffe3ec">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
+<link rel="manifest" href="manifest.json"><text y='.9em' font-size='90'>💬</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💬</text></svg>">
+<title>每日問答 💬</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+<script src="site-config.js"></script>
+<script src="firebase-init.js"></script>
+<style>
+.date-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.date-nav-btn{background:var(--card);color:var(--accent);border:1.5px solid var(--line);border-radius:999px;padding:6px 14px;font-size:.85rem;font-weight:bold;cursor:pointer;transition:all .2s;box-shadow:0 2px 8px rgba(232,85,122,.1)}
+.date-nav-btn:active{transform:scale(0.95)}
+.date-nav-btn:disabled{opacity:.35;cursor:not-allowed}
+.date-chip{font-size:.92rem;font-weight:800;color:var(--fg);background:var(--b1);padding:6px 14px;border-radius:999px;border:1px solid var(--line)}
+.today-wrap{text-align:center;margin-bottom:14px}
+.today-btn{background:var(--card);color:var(--accent);border:1.5px dashed var(--accent);border-radius:999px;padding:5px 16px;font-size:.82rem;font-weight:bold;cursor:pointer;transition:all .2s;box-shadow:0 2px 6px rgba(232,85,122,.15)}
+.today-btn:hover{background:var(--accent);color:#fff}
+.q-title{font-size:1.15rem;color:var(--accent);font-weight:bold;margin-bottom:14px;display:flex;align-items:flex-start;gap:10px;text-align:left;line-height:1.45;background:rgba(232,85,122,.06);padding:12px 14px;border-radius:14px;border-left:4px solid var(--accent)}
+.q-title span{font-size:1.5rem;line-height:1}
+.ans-box{margin-bottom:16px;text-align:left}
+.ans-box label{display:block;font-size:.95rem;font-weight:bold;color:var(--muted);margin-bottom:6px}
+.ans-box label.is-me{color:var(--accent)}
+textarea{width:100%;height:95px;resize:none;padding:12px;border-radius:14px;border:2px solid var(--line);font-size:.95rem;font-family:inherit;background:var(--card);color:var(--fg);line-height:1.5;transition:border-color .2s}
+textarea:focus{border-color:var(--accent);outline:none}
+textarea.my-input{border-color:rgba(232,85,122,.45)}
+#save-btn{width:100%;margin-top:6px}
+#state{margin-top:12px;font-size:.85rem;color:var(--muted);text-align:center;min-height:1.2em}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html">刮刮樂</a>
+  <a href="park.html">遊樂園</a>
+  <a href="timeline.html">我們的故事</a>
+  <a href="daily.html" class="active">每日問答</a>
+  <a href="games.html">小遊戲</a>
+  <a href="quiz.html">默契問答</a>
+  <a href="army.html">當兵倒數</a>
+  <a href="capsule.html">時光膠囊</a>
+  <a href="admin.html" style="display:none">後台管理⚙️</a>
+  <a href="#" class="logout" onclick="auth.signOut(); return false;">登出🚪</a>
+</nav>
+
+<h1>💬 每日專屬問答</h1>
+<p class="sub">像 SumOne 一樣，每天都有專屬默契問題，還能翻閱往日時光喔！</p>
+
+<div class="panel">
+  <!-- 時光機日期導覽列 -->
+  <div class="date-bar">
+    <button id="btn-prev" class="date-nav-btn">◀ 前一天</button>
+    <div id="cur-date-display" class="date-chip">📅 載入中...</div>
+    <button id="btn-next" class="date-nav-btn" disabled>後一天 ▶</button>
+  </div>
+  <div class="today-wrap">
+    <button id="btn-today" class="today-btn" style="display:none;">🎯 回到今天</button>
+  </div>
+
+  <div class="q-title">
+    <span>📝</span>
+    <div id="question">正在載入專屬問題...</div>
+  </div>
+
+  <div class="ans-box">
+    <label id="lb-boy">👦 定宇本寶的回答:</label>
+    <textarea id="ans-boy" placeholder="定宇請在此輸入心裡的話..."></textarea>
+  </div>
+  <div class="ans-box">
+    <label id="lb-girl">👧 寶鼻小寶的回答:</label>
+    <textarea id="ans-girl" placeholder="小寶請在此輸入心裡的話..."></textarea>
+  </div>
+
+  <button id="save-btn">儲存這天回憶 💖</button>
+  <div id="state"></div>
+</div>
+
+<script>
+(async () => {
+  const user = await authReady; if (!user) return;
+  const site = await loadSiteConfig();
+  const $ = id => document.getElementById(id);
+  const qa = (site.qaBank && site.qaBank.length) ? site.qaBank : site.dailyQuestions;
+  const ch = (site.choices || []).map(c => Array.isArray(c) ? c : c.split('|')); // Firestore 存成 "A|B" 字串
+
+  const isTony = isAdminUser(user);
+  const boyName = (site.names && site.names.boy) || '定宇本寶';
+  const girlName = (site.names && site.names.girl) || '寶鼻小寶';
+
+  $('lb-boy').textContent = '👦 ' + boyName + '的回答:' + (isTony ? ' (你)' : '');
+  $('lb-girl').textContent = '👧 ' + girlName + '的回答:' + (!isTony ? ' (妳)' : '');
+  if (isTony) {
+    $('lb-boy').classList.add('is-me');
+    $('ans-boy').classList.add('my-input');
+  } else {
+    $('lb-girl').classList.add('is-me');
+    $('ans-girl').classList.add('my-input');
+  }
+
+  const getTodayStr = () => new Date().toLocaleDateString('sv');
+  const getDateStr = d => d.toLocaleDateString('sv');
+
+  let curDate = new Date();
+  let unsub = null;
+  let activeDocRef = null;
+
+  function loadDate(targetDate) {
+    if (unsub) { unsub(); unsub = null; }
+    const todayStr = getTodayStr();
+    const dateStr = getDateStr(targetDate);
+    const isToday = dateStr === todayStr;
+
+    $('cur-date-display').textContent = `📅 ${dateStr} ${isToday ? '(今天)' : '(往日回憶)'}`;
+    $('btn-today').style.display = isToday ? 'none' : 'inline-block';
+    $('btn-next').disabled = dateStr >= todayStr;
+
+    // 計算該日期的問題 (偶數日: 深度問答；奇數日: 二選一)
+    const dayNum = Math.floor(Date.UTC(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate()) / 864e5);
+    const half = Math.floor(dayNum / 2);
+    $('question').textContent = (dayNum % 2 === 0 || !ch.length)
+      ? 'Q: ' + (qa[half % qa.length] || '今天的問題是？')
+      : '二選一: ' + ch[half % ch.length][0] + ' 還是 ' + ch[half % ch.length][1] + '？說說為什麼';
+
+    // 重設輸入框並載入記錄
+    if (document.activeElement !== $('ans-boy')) $('ans-boy').value = '';
+    if (document.activeElement !== $('ans-girl')) $('ans-girl').value = '';
+    $('state').textContent = '載入中...';
+
+    activeDocRef = db.collection('daily').doc(dateStr);
+    unsub = activeDocRef.onSnapshot(doc => {
+      if (!doc.exists) {
+        if (document.activeElement !== $('ans-boy')) $('ans-boy').value = '';
+        if (document.activeElement !== $('ans-girl')) $('ans-girl').value = '';
+        $('state').textContent = isToday ? '尚未填寫今日回憶' : '這一天未有記錄 (可補寫回憶)';
+        return;
+      }
+      const d = doc.data();
+      if (document.activeElement !== $('ans-boy'))  $('ans-boy').value  = d.boy  || '';
+      if (document.activeElement !== $('ans-girl')) $('ans-girl').value = d.girl || '';
+      $('state').textContent = '☁️ 已載入記錄 ' + (isToday ? '' : `(${dateStr})`);
+    }, e => { $('state').textContent = '⚠️ 讀取失敗:' + e.message; });
+  }
+
+  // 綁定時光機切換按鈕
+  $('btn-prev').onclick = () => {
+    curDate.setDate(curDate.getDate() - 1);
+    loadDate(curDate);
+  };
+  $('btn-next').onclick = () => {
+    const todayStr = getTodayStr();
+    if (getDateStr(curDate) >= todayStr) return;
+    curDate.setDate(curDate.getDate() + 1);
+    loadDate(curDate);
+  };
+  $('btn-today').onclick = () => {
+    curDate = new Date();
+    loadDate(curDate);
+  };
+
+  // 儲存邏輯 (自動延遲儲存 + 手動立即儲存)
+  let timer;
+  const doSave = () => {
+    if (!activeDocRef) return;
+    const isToday = getDateStr(curDate) === getTodayStr();
+    return activeDocRef.set({ boy: $('ans-boy').value, girl: $('ans-girl').value }, { merge: true })
+      .then(() => {
+        $('state').textContent = `☁️ 已同步${isToday ? '今日' : getDateStr(curDate)}回憶 ` + new Date().toLocaleTimeString('zh-TW');
+      })
+      .catch(e => { $('state').textContent = '⚠️ 儲存失敗:' + e.message; });
+  };
+
+  const autoSave = () => {
+    $('state').textContent = '儲存中...';
+    clearTimeout(timer);
+    timer = setTimeout(doSave, 800);
+  };
+
+  $('ans-boy').addEventListener('input', autoSave);
+  $('ans-girl').addEventListener('input', autoSave);
+  $('save-btn').onclick = () => { clearTimeout(timer); doSave(); };
+
+  // 初次載入今日問答
+  loadDate(curDate);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+:root{--b1:#ffe3ec;--b2:#ffd0e4;--b3:#e6dcff;--fg:#4a2230;--card:#fff;--muted:#9b6b7d;--accent:#e8557a;--line:#f5cbd8}
+@media (prefers-color-scheme:dark){:root{--b1:#1d1217;--b2:#2a1424;--b3:#1c1631;--fg:#fbe4ea;--card:#2b1b22;--muted:#b88c9a;--accent:#ff7a9c;--line:#4a2f3a}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;min-height:100vh;min-height:100dvh;color:var(--fg);font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;background:linear-gradient(135deg,var(--b1),var(--b2),var(--b3));background-size:300% 300%;animation:bg 14s ease infinite;display:flex;flex-direction:column;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 24px) 16px calc(env(safe-area-inset-bottom,0px) + 60px);text-align:center}
+@keyframes bg{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
+nav{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:24px;z-index:10;position:relative}
+nav a{background:var(--card);color:var(--accent);text-decoration:none;padding:8px 16px;border-radius:999px;font-size:.9rem;font-weight:bold;border:1.5px solid var(--accent);transition:.2s}
+nav a.active{background:var(--accent);color:#fff}
+h1{font-size:1.75rem;margin:4px 0}
+.sub{color:var(--muted);font-size:.92rem;margin:0 0 20px}
+.panel{width:min(100%,480px);background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;margin-bottom:20px;box-shadow:0 8px 24px rgba(232,85,122,.15);text-align:left}
+.panel h2{margin:0 0 12px;font-size:1.25rem;color:var(--accent)}
+.hint{color:var(--muted);font-size:.85rem;margin:4px 0 8px}
+button{font-family:inherit;background:var(--accent);color:#fff;border:0;border-radius:999px;padding:12px 24px;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(232,85,122,.3);transition:transform .15s,opacity .2s}
+button:active{transform:scale(.97)}
+button:disabled{opacity:.4;cursor:default}
+button.g{background:var(--card);color:var(--accent);border:1.5px solid var(--accent);box-shadow:none;padding:10px 18px;font-size:.92rem}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+textarea,input{width:100%;font-family:inherit;font-size:1rem;color:var(--fg);background:var(--b1);border:2px solid var(--line);border-radius:12px;padding:12px}
+textarea:focus,input:focus{outline:none;border-color:var(--accent)}
+
+/* 浪漫兌換券專屬彈窗 (Voucher Ticket Modal) */
+.voucher-overlay{position:fixed;inset:0;background:rgba(0,0,0,.68);backdrop-filter:blur(5px);z-index:150;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .3s ease}
+.voucher-overlay.show{opacity:1;pointer-events:auto}
+.voucher-card{background:linear-gradient(135deg,#fffdfd,#fff5f8);border:2.5px dashed var(--accent);border-radius:22px;max-width:390px;width:100%;padding:28px 22px 22px;position:relative;box-shadow:0 24px 50px rgba(0,0,0,.35);color:var(--fg);text-align:center;font-family:inherit;overflow:hidden;transform:scale(.92);transition:transform .3s cubic-bezier(0.175,0.885,0.32,1.275)}
+.voucher-overlay.show .voucher-card{transform:scale(1)}
+.voucher-card::before,.voucher-card::after{content:'';position:absolute;top:54%;width:26px;height:26px;background:rgba(0,0,0,.68);border-radius:50%;transform:translateY(-50%)}
+.voucher-card::before{left:-15px}
+.voucher-card::after{right:-15px}
+.voucher-header{font-size:.8rem;letter-spacing:2px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+.voucher-badge{display:inline-block;padding:4px 14px;border-radius:999px;font-size:.82rem;font-weight:bold;background:var(--accent);color:#fff;margin-bottom:10px;box-shadow:0 2px 8px rgba(232,85,122,.3)}
+.voucher-title{font-size:1.45rem;font-weight:900;margin:6px 0 10px;color:var(--accent);line-height:1.3}
+.voucher-desc{font-size:.95rem;line-height:1.6;color:var(--fg);margin:10px 0 16px;background:rgba(232,85,122,.08);padding:12px 14px;border-radius:14px;border-left:4px solid var(--accent);text-align:left}
+.voucher-rest{font-size:.88rem;color:var(--muted);margin-bottom:16px;font-weight:bold}
+.voucher-stamp{position:absolute;right:18px;bottom:90px;border:3px solid #d32f2f;color:#d32f2f;font-weight:900;font-size:1.15rem;padding:6px 14px;border-radius:10px;transform:rotate(-15deg) scale(0);opacity:0;pointer-events:none;transition:transform .35s cubic-bezier(0.175,0.885,0.32,1.275),opacity .3s;letter-spacing:1.5px;background:rgba(255,255,255,.92);box-shadow:0 4px 12px rgba(211,47,47,.25)}
+.voucher-stamp.stamped{transform:rotate(-15deg) scale(1);opacity:.95}
+
+/* 心動冒出動畫 */
+@keyframes heartBurst{
+  0%{transform:translate(-50%,-50%) scale(0.6) translateY(0);opacity:1}
+  100%{transform:translate(-50%,-50%) scale(1.4) translateY(-100px) rotate(25deg);opacity:0}
+}
+.floating-heart{position:fixed;pointer-events:none;z-index:9999;font-size:1.6rem;animation:heartBurst 1.1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards}
+
+/* 想你按鈕樣式 (Miss You Floating Button) */
+.miss-btn{
+  position:fixed;
+  bottom:calc(env(safe-area-inset-bottom, 0px) + 20px);
+  right:16px;
+  background:linear-gradient(135deg, #ff4e83, #ff7ba5);
+  color:#fff;
+  border:2.5px solid #fff;
+  box-shadow:0 8px 24px rgba(255,78,131,0.45);
+  border-radius:999px;
+  padding:9px 16px;
+  font-size:0.92rem;
+  font-weight:bold;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  z-index:90;
+  cursor:pointer;
+  transition:transform .2s cubic-bezier(0.175,0.885,0.32,1.275), box-shadow .2s;
+  user-select:none;
+}
+.miss-btn:active{
+  transform:scale(0.92);
+}
+.miss-badge{
+  background:rgba(255,255,255,0.95);
+  color:#ff4e83;
+  font-size:0.75rem;
+  font-weight:900;
+  border-radius:999px;
+  padding:2px 8px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.15);
+}
+
+@media (prefers-color-scheme:dark){
+  .voucher-card{background:linear-gradient(135deg,#2c1b23,#20141a);color:#fbe4ea}
+  .voucher-desc{background:rgba(255,122,156,.12);color:#fbe4ea}
+  .voucher-stamp{background:rgba(40,20,30,.92)}
+  .pwa-banner{background:linear-gradient(135deg,#2a1822,#201319);color:#fbe4ea}
+}
+
+/* PWA 桌面 App 橫幅與步驟說明 */
+.pwa-banner{
+  width:min(100%,460px);
+  background:linear-gradient(135deg,#fff0f5,#ffe4ec);
+  border:2px solid var(--accent);
+  border-radius:18px;
+  padding:12px 14px;
+  margin:0 auto 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  font-size:0.88rem;
+  text-align:left;
+  box-shadow:0 6px 18px rgba(232,85,122,.15);
+}
+.pwa-install-btn{
+  background:var(--accent);
+  color:#fff;
+  border:none;
+  border-radius:999px;
+  padding:8px 14px;
+  font-size:0.84rem;
+  font-weight:bold;
+  white-space:nowrap;
+  cursor:pointer;
+  box-shadow:0 4px 10px rgba(232,85,122,.25);
+  transition:transform .15s;
+}
+.pwa-install-btn:active{transform:scale(0.95)}
+.pwa-close-btn{
+  background:transparent;
+  border:none;
+  color:var(--muted);
+  font-size:1.3rem;
+  line-height:1;
+  cursor:pointer;
+  padding:0 4px;
+}
+.pwa-step-box{
+  text-align:left;
+  background:var(--b1);
+  padding:14px;
+  border-radius:14px;
+  border:1px solid var(--line);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  font-size:0.92rem;
+  line-height:1.5;
+}
+.pwa-step{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+}
+.pwa-num{
+  background:var(--accent);
+  color:#fff;
+  font-weight:900;
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:0.8rem;
+  flex-shrink:0;
+}
+

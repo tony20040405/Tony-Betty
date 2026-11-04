@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="寶鼻刮刮樂">
+<meta name="theme-color" content="#ffe3ec">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💖</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💖</text></svg>">
+<link rel="manifest" href="manifest.json">
+<title>寶鼻專屬刮刮樂 💖</title>
+<link rel="stylesheet" href="style.css">
+<style>
+:root{--b1:#ffe3ec;--b2:#ffd0e4;--b3:#e6dcff;--fg:#4a2230;--card:#fff;--muted:#9b6b7d;--accent:#e8557a;--line:#f5cbd8;--tc:#e8557a}
+@media (prefers-color-scheme:dark){:root{--b1:#1d1217;--b2:#2a1424;--b3:#1c1631;--fg:#fbe4ea;--card:#2b1b22;--muted:#b88c9a;--accent:#ff7a9c;--line:#4a2f3a}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--fg);font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;background:linear-gradient(135deg,var(--b1),var(--b2),var(--b3));background-size:300% 300%;animation:bg 14s ease infinite;display:flex;flex-direction:column;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 24px) 16px calc(env(safe-area-inset-bottom,0px) + 40px);text-align:center;overflow-x:hidden}
+@keyframes bg{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
+h1{font-size:1.75rem;margin:4px 0;text-shadow:0 2px 12px rgba(232,85,122,.25)}
+.sub{color:var(--muted);margin:0 0 14px;font-size:.92rem}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:18px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 13px;font-size:.85rem;box-shadow:0 3px 10px rgba(232,85,122,.12)}
+.chip b{color:var(--accent)}
+.wrap{position:relative;width:min(100%,350px);aspect-ratio:4/3;background:var(--card);border-radius:22px;border:3px solid var(--line);box-shadow:0 12px 34px rgba(232,85,122,.28);overflow:hidden;touch-action:none;transition:border-color .5s,box-shadow .5s}
+.wrap.win{border-color:var(--tc);animation:glow 1.6s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 18px var(--tc)}50%{box-shadow:0 0 44px var(--tc)}}
+.prize{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:12px}
+.badge{font-size:.75rem;font-weight:700;letter-spacing:.15em;color:#fff;background:var(--tc);border-radius:999px;padding:2px 12px}
+.prize .e{font-size:3.3rem;line-height:1.1}
+.prize .t{font-size:1.25rem;font-weight:800;color:var(--tc)}
+.prize .n{font-size:.85rem;color:var(--muted);max-width:90%}
+.win .e{animation:pop .7s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.2) rotate(-25deg)}to{transform:none}}
+canvas{position:absolute;inset:0;width:100%;height:100%;cursor:grab;transition:opacity .6s}
+canvas.done{opacity:0;pointer-events:none}
+.sp{position:absolute;pointer-events:none;font-size:14px;animation:sp .7s forwards;z-index:3}
+@keyframes sp{to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+.info{margin:16px 0 10px;color:var(--muted);min-height:1.4em;font-size:.93rem}
+.btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+button{font-family:inherit;background:var(--accent);color:#fff;border:0;border-radius:999px;padding:12px 26px;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 6px 16px rgba(232,85,122,.3);transition:transform .15s,opacity .2s}
+button:active{transform:scale(.95)}
+button:disabled{opacity:.4;cursor:default}
+button.g{background:var(--card);color:var(--accent);border:1.5px solid var(--accent);box-shadow:none;padding:10px 18px;font-size:.92rem}
+.panel{width:min(100%,520px);margin-top:22px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;text-align:left}
+.panel h2{margin:0 0 4px;font-size:1.1rem;color:var(--accent)}
+.hint{color:var(--muted);font-size:.8rem;margin:2px 0 8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.it{border:2px solid var(--c);border-radius:12px;padding:8px;text-align:center;font-size:.85rem;background:var(--card)}
+.it.lock{opacity:.45;filter:grayscale(1)}
+.it .e{font-size:1.8rem}
+.it small{display:block;color:var(--muted)}
+.it button{padding:4px 12px;font-size:.78rem;margin-top:4px;box-shadow:none}
+.heart{position:fixed;bottom:-30px;pointer-events:none;opacity:.7;animation:rise linear forwards;z-index:0}
+@keyframes rise{to{transform:translateY(-110vh) rotate(40deg);opacity:0}}
+.fx{position:fixed;top:-30px;pointer-events:none;animation:fall 2.6s linear forwards;z-index:9}
+@keyframes fall{to{transform:translateY(112vh) rotate(420deg);opacity:.5}}
+textarea{width:100%;height:240px;background:var(--b1);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:8px;font:12px/1.4 monospace}
+[hidden]{display:none!important}
+html[data-theme=night]{--b1:#14122b;--b2:#1d1a42;--b3:#2a1b4d;--fg:#ece8ff;--card:#221f45;--muted:#a9a3d6;--accent:#9d8cff;--line:#3a3570}
+html[data-theme=peach]{--b1:#fff1e0;--b2:#ffd9b8;--b3:#ffc7c7;--fg:#4a2a1a;--card:#fff;--muted:#a8765a;--accent:#ff7a45;--line:#ffd6b5}
+html[data-theme=mint]{--b1:#e3fff3;--b2:#c9f5e3;--b3:#d5e8ff;--fg:#17382d;--card:#fff;--muted:#5f9b86;--accent:#1fb58a;--line:#bfe8d6}
+#md{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:20;padding:18px}
+#md .box{background:var(--card);border-radius:20px;padding:22px;max-width:340px;width:100%;max-height:85vh;overflow:auto;text-align:center;border:3px solid var(--accent)}
+#md .box img{max-width:100%;border-radius:12px;margin:8px 0}
+#mdN{white-space:pre-wrap;line-height:1.7;margin:8px 0 14px;text-align:left}
+#toast{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);left:50%;transform:translate(-50%,20px);background:var(--accent);color:#fff;padding:10px 18px;border-radius:999px;font-size:.9rem;opacity:0;transition:.4s;z-index:30;pointer-events:none;max-width:90vw}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+.wheelbox{position:relative;width:260px;margin:10px auto}
+.ptr{position:absolute;top:-8px;left:50%;margin-left:-11px;border:11px solid transparent;border-top:22px solid var(--accent);z-index:2}
+#wc{position:relative;inset:auto;display:block;cursor:default;width:260px;height:260px;border-radius:50%;box-shadow:0 8px 24px rgba(0,0,0,.2);transition:transform 4.2s cubic-bezier(.12,.7,.1,1)}
+.bdg{display:inline-block;margin:3px;padding:4px 10px;border-radius:999px;border:1.5px solid var(--accent);font-size:.8rem}
+.bdg.off{opacity:.35;filter:grayscale(1)}
+
+nav { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 24px; z-index: 10; position: relative; }
+nav a { background: var(--card); color: var(--accent); text-decoration: none; padding: 8px 16px; border-radius: 999px; font-size: 0.9rem; font-weight: bold; border: 1.5px solid var(--accent); transition: 0.2s; }
+nav a.active { background: var(--accent); color: #fff; }
+</style>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+<script src="site-config.js"></script>
+<script src="firebase-init.js"></script>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="active">刮刮樂</a>
+  <a href="park.html">遊樂園</a>
+  <a href="timeline.html">我們的故事</a>
+  <a href="daily.html">每日問答</a>
+  <a href="games.html">小遊戲</a>
+  <a href="quiz.html">默契問答</a>
+  <a href="army.html">當兵倒數</a>
+  <a href="capsule.html">時光膠囊</a>
+  <a href="#" id="pwaNavBtn" style="background:linear-gradient(135deg,#ff758c,#ff7eb3);color:#fff;border:none;">📱 加到桌面 App</a>
+  <a href="admin.html" style="display:none">後台管理⚙️</a>
+  <a href="#" class="logout" onclick="auth.signOut(); return false;">登出🚪</a>
+</nav>
+
+<div id="pwaBanner" class="pwa-banner" style="display:none;">
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span style="font-size:1.3rem;">📱</span>
+    <span><b>安裝到手機桌面</b>：全螢幕秒開、像原生 App 一樣超順暢！</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;">
+    <button id="pwaInstallBtn" class="pwa-install-btn">立即加到桌面 💖</button>
+    <button id="pwaBannerClose" class="pwa-close-btn" title="關閉">&times;</button>
+  </div>
+</div>
+
+<h1 id="title"><span id="titleText"></span> <span id="titleHeart" style="cursor:pointer; user-select:none;">💖</span></h1>
+<p class="sub" id="sub"></p>
+<div class="chips" id="chips"></div>
+<div class="wrap" id="wrap">
+  <div class="prize"><span class="badge" id="bd"></span><div class="e" id="pe"></div><div class="t" id="pt"></div><div class="n" id="pn"></div></div>
+  <canvas id="cv"></canvas>
+</div>
+<div class="info" id="info"></div>
+<div class="btns">
+  <button id="next" disabled>再刮一張 🎟️</button>
+  <button class="g" id="autoSc" style="display:none">✨ 直接刮開</button>
+  <button class="g" id="colBtn">🎒 收藏冊</button>
+  <button class="g" id="snd">🔊</button>
+  <button class="g" id="whBtn">🎡 小轉盤</button>
+  <button class="g" id="thBtn">🎨</button>
+</div>
+
+<section class="panel" id="col" hidden>
+  <h2>🎒 我的收藏冊 <span id="prog"></span></h2>
+  <div class="hint">刮到的獎品都會收進來,按「兌換」就是跟他使用這張券囉(記得截圖給他看 📸)。</div>
+  
+  <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+    <input type="text" id="colSearch" placeholder="🔍 搜尋名稱..." style="flex:1; min-width:140px; padding:10px; border-radius:12px; border:2px solid var(--line); font-size:0.95rem; background:var(--b1); color:var(--fg);">
+    <select id="colFilter" style="padding:10px; border-radius:12px; border:2px solid var(--line); font-size:0.95rem; background:var(--b1); color:var(--fg); outline:none;">
+      <option value="ALL">所有分類</option>
+      <option value="GOT">✅ 已經刮到</option>
+      <option value="N">普通獎品 (N)</option>
+      <option value="R">稀有獎品 (R)</option>
+      <option value="E">史詩獎品 (E)</option>
+      <option value="L">傳說獎品 (L)</option>
+      <option value="W">小轉盤獎品</option>
+    </select>
+  </div>
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+     <button class="g" id="btnPrevPage" style="padding:6px 16px; font-size:0.85rem; box-shadow:none;">上一頁</button>
+     <span id="colPageInfo" style="font-size:0.9rem; font-weight:bold; color:var(--muted);">第 1 頁</span>
+     <button class="g" id="btnNextPage" style="padding:6px 16px; font-size:0.85rem; box-shadow:none;">下一頁</button>
+  </div>
+  
+  <div class="grid" id="grid"></div>
+  <div class="hint" style="margin-top:12px">成就徽章</div><div id="ach"></div>
+</section>
+
+<section class="panel" id="wh" hidden>
+  <h2>🎡 小轉盤 <span class="hint" id="wl"></span></h2>
+  <div class="hint">轉到的小獎也會收進收藏冊,還有機會多送一張刮刮卡。</div>
+  <div class="wheelbox"><div class="ptr"></div><canvas id="wc" width="300" height="300"></canvas></div>
+  <div class="btns"><button id="spin">轉!</button></div>
+  <div class="hint" id="wres" style="text-align:center;margin-top:8px"></div>
+</section>
+<div id="md" hidden><div class="box"><div style="font-size:2.6rem" id="mdE"></div><h2 id="mdT"></h2><img id="mdI" alt="" hidden><div id="mdN"></div><button id="mdX">收下 💖</button></div></div>
+<div id="toast"></div>
+
+<!-- 想你按鈕 (Miss You Floating Button) -->
+<button class="miss-btn" id="missBtn" title="點擊發送想念訊號 💕">
+  <span>💕 想你</span>
+  <span class="miss-badge" id="missCount">0</span>
+</button>
+
+<!-- 浪漫承諾約定券兌換彈窗 (Voucher Ticket Modal) -->
+<div class="voucher-overlay" id="voucherModal" hidden>
+  <div class="voucher-card" id="voucherCard">
+    <div class="voucher-header">定宇 & 小寶 專屬承諾約定券</div>
+    <div class="voucher-badge" id="vBadge">傳說級獎品</div>
+    <div class="voucher-title" id="vTitle">✨ 陪伴去吃宵夜</div>
+    <div class="voucher-desc" id="vDesc">小寶專屬承諾，憑此券可向定宇隨時兌換！願賭服輸，不得反悔喔～💖</div>
+    <div class="voucher-rest" id="vRest">剩餘持有：1 張</div>
+    <div class="voucher-stamp" id="vStamp">💮 已驗證兌換<br><small>小寶專用・不得反悔</small></div>
+    <div class="btns" style="margin-top:14px; gap:10px;">
+      <button id="vRedeemBtn" style="flex:1; background:var(--accent); color:#fff; border:none; padding:12px; font-weight:bold; border-radius:14px; cursor:pointer;">💮 立即蓋章兌換</button>
+      <button class="g" id="vCloseBtn" style="padding:12px 18px; border-radius:14px; cursor:pointer;">關閉</button>
+    </div>
+  </div>
+</div>
+
+<!-- PWA 手機主畫面安裝教學彈窗 -->
+<div class="voucher-overlay" id="pwaModal" hidden>
+  <div class="voucher-card" style="text-align:center; max-width:360px;">
+    <div style="font-size:2.8rem; margin-bottom:8px;">💖</div>
+    <div class="voucher-header">定宇 & 小寶 專屬空間</div>
+    <h2 style="margin:4px 0 8px; color:var(--accent); font-size:1.35rem;">加到手機桌面當 App 隨開隨玩</h2>
+    <p style="font-size:0.9rem; color:var(--muted); margin:0 0 16px;">免去 App Store，一鍵即可擁有全螢幕 App！</p>
+    
+    <div class="pwa-step-box">
+      <div class="pwa-step">
+        <span class="pwa-num">1</span>
+        <span>iPhone 請點瀏覽器底部的 <b>「分享」按鈕 📤</b><br><small style="color:var(--muted)">(Android 點瀏覽器右上角選單 ⋮)</small></span>
+      </div>
+      <div class="pwa-step">
+        <span class="pwa-num">2</span>
+        <span>在選單中滑動，點選 <b>「加入主畫面」 ➕</b></span>
+      </div>
+      <div class="pwa-step">
+        <span class="pwa-num">3</span>
+        <span>點擊右上角的 <b>「新增」</b> 就完成囉！✨</span>
+      </div>
+    </div>
+    
+    <div style="margin-top:18px;">
+      <button class="b" id="pwaModalClose" style="width:100%; border-radius:999px;">我知道了 💖</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* 取得全域初始設定 (優先使用 site-config.js 中的完整 800+ 獎品庫與設定) */
+function getInitialConfig(){
+  const base = (typeof DEFAULT_CONFIG !== "undefined" && DEFAULT_CONFIG.scratchcard)
+    ? JSON.parse(JSON.stringify(DEFAULT_CONFIG.scratchcard))
+    : {
+        title: "💖 寶鼻專屬刮刮樂",
+        subtitle: "用手指刮開銀色的部分,看看今天抽到什麼!",
+        dailyLimit: 3,
+        wheelLimit: 1,
+        prizes: []
+      };
+  try {
+    const cached = JSON.parse(localStorage.getItem('siteConfigCache') || 'null');
+    if (cached && cached.scratchcard) {
+      Object.assign(base, cached.scratchcard);
+      if (!Array.isArray(base.prizes) || !base.prizes.length) {
+        base.prizes = (typeof DEFAULT_CONFIG !== "undefined" && DEFAULT_CONFIG.scratchcard && DEFAULT_CONFIG.scratchcard.prizes) || [];
+      }
+    }
+    if (cached && cached.dates) {
+      if (cached.dates.start) base.startDate = cached.dates.start;
+      if (cached.dates.anniversary) base.anniversary = cached.dates.anniversary;
+    }
+  } catch(_) {}
+  return base;
+}
+
+const DEFAULT = getInitialConfig();
+const TIER = {W:{n:"轉盤",c:"#ff5fa2",k:24,s:[784,988]}, N:{n:"普通",c:"#6f93b8",k:18,s:[660,880]}, R:{n:"稀有",c:"#2f8cff",k:30,s:[523,659,784]}, E:{n:"史詩",c:"#a24dff",k:46,s:[523,659,784,1047]}, L:{n:"傳說",c:"#ff9d00",k:80,s:[523,659,784,1047,1319,1568]}};
+const REVEAL_AT = 0.40; // 優化：由 0.55 調降至 0.40，中心文字刮出即可順利揭曉，不再因死角漏刮而沒存檔
+const $ = id => document.getElementById(id);
+let cfg = getInitialConfig();
+
+const defaultST = () => ({
+  days:{}, got:{}, pending:null, sp:{}, recent:[],
+  streak:{d:"",n:0}, bonus:{d:"",n:0}, miss:0, missYou:0, ach:{},
+  wheel:{}, spins:0, theme:0, grantSeen:0, quizGiven:0, park:{d:"",g:{}}
+});
+
+let ST = defaultST();
+
+function reloadST(externalState){
+  let saved = externalState || null;
+  if (!saved) {
+    try { saved = JSON.parse(localStorage.getItem("sc2") || "null"); } catch(_) {}
+    if (!saved || typeof saved !== "object") {
+      try { saved = JSON.parse(localStorage.getItem("sc2_backup") || "null"); } catch(_) {}
+    }
+  }
+  Object.keys(ST).forEach(k => delete ST[k]);
+  Object.assign(ST, defaultST(), saved || {});
+  if($("missCount")) $("missCount").textContent = ST.missYou || 0;
+}
+reloadST();
+
+const save = () => {
+  try {
+    cloudSync.push(JSON.stringify(ST));
+  } catch(e) {
+    console.error("Save error:", e);
+  }
+};
+const tk = () => new Date().toLocaleDateString("sv");
+const day0 = s => { const [y,m,d] = s.split("-").map(Number); return new Date(y,m-1,d); };
+const todayD = () => { const n = new Date(); return new Date(n.getFullYear(),n.getMonth(),n.getDate()); };
+
+/* ---------- 聲音 ---------- */
+let AC = null, muted = false;
+function beep(f,t,d,type="sine",v=.08){
+  if(!AC||muted) return; const o = AC.createOscillator(), g = AC.createGain(), n = AC.currentTime+t;
+  o.type = type; o.frequency.value = f; g.gain.setValueAtTime(v,n); g.gain.exponentialRampToValueAtTime(.0001,n+d);
+  o.connect(g); g.connect(AC.destination); o.start(n); o.stop(n+d);
+}
+const chime = r => TIER[r].s.forEach((f,i)=>beep(f,i*.11,.5,"triangle",.1));
+$("snd").onclick = () => { muted = !muted; $("snd").textContent = muted ? "🔇" : "🔊"; };
+
+/* ---------- 版面資訊 ---------- */
+function chips(){
+  const c = []; const t = todayD();
+  if(cfg.startDate){ const d = Math.floor((t - day0(cfg.startDate))/864e5); if(d>=0) c.push(`💞 在一起 <b>${d}</b> 天`); }
+  if(cfg.anniversary){ const d = Math.round((day0(cfg.anniversary) - t)/864e5);
+    c.push(d>0 ? `🎂 一週年倒數 <b>${d}</b> 天` : d===0 ? `🎉 <b>今天是紀念日!</b>` : ""); }
+  if(ST.streak.n>1) c.push(`🔥 連續 <b>${ST.streak.n}</b> 天`);
+  if(cfg.dailyLimit>0) c.push(`🎟️ 今日剩 <b>${left()}</b> 張`);
+  $("chips").innerHTML = c.filter(Boolean).map(x=>`<span class="chip">${x}</span>`).join("");
+  if($("missCount")) $("missCount").textContent = ST.missYou || 0;
+}
+const left = () => cfg.dailyLimit>0 ? Math.max(0,cfg.dailyLimit+(ST.bonus.d===tk()?ST.bonus.n:0)-(ST.days[tk()]||0)) : Infinity;
+function applyText(){
+  $("titleText").textContent = cfg.herName ? `給${cfg.herName}的專屬刮刮樂` : cfg.title.replace(" 💖","");
+  $("sub").textContent = cfg.subtitle; chips();
+}
+
+/* ---------- 隱藏彩蛋二：狂戳「標題愛心」 ---------- */
+let heartClicks = 0;
+let heartTimer = null;
+if($("titleHeart")) {
+    $("titleHeart").addEventListener("click", (e) => {
+        heartClicks++;
+        spawnHearts(e.clientX || (window.innerWidth / 2), e.clientY || 80, 4);
+        clearTimeout(heartTimer);
+        heartTimer = setTimeout(() => { heartClicks = 0; }, 2000); // 2秒內沒點就重置
+        
+        if(heartClicks === 9) {
+            heartClicks = 0;
+            if(navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 300]);
+            const eggLetter = {
+                e: "💌", 
+                t: "絕對機密情書", 
+                n: `這是一封藏在系統深處的信件。
+
+寶鼻，當妳發現這個秘密的時候，我可能正在操課，也可能正在站哨。
+但妳要知道，我愛妳的心思，就跟這個彩蛋一樣，藏在每一個妳看得到、或看不到的地方。
+
+等我回來，給妳一個最大最大的擁抱。
+愛妳的定宇 💖`, 
+                r: "L", letter: true
+            };
+            showModal(eggLetter);
+        }
+    });
+}
+
+let currentPage = 1;
+const PAGE_SIZE = 12; // 每頁顯示 12 個
+function colGrid(){
+  const g = $("grid"); g.textContent = ""; let have = 0;
+  let list = allList();
+  
+  // 計算總持有數
+  list.forEach(p => { if(ST.got[p.t]) have++; });
+  $("prog").textContent = `${have}/${allList().length} (已獲得 ${have} 項)`; renderAch();
+  
+  // 取得搜尋與分類條件
+  const kw = $("colSearch") ? $("colSearch").value.toLowerCase() : "";
+  const fv = $("colFilter") ? $("colFilter").value : "ALL";
+  
+  // 過濾列表
+  list = list.filter(p => {
+     const T = TIER[p.r] || TIER.N;
+     if (fv === "GOT" && !ST.got[p.t]) return false;
+     if (fv !== "ALL" && fv !== "GOT" && p.r !== fv) return false;
+     if (kw && !p.t.toLowerCase().includes(kw) && !T.n.toLowerCase().includes(kw)) return false;
+     return true;
+  });
+
+  // 排序：已抽中的獎品永遠排在最前面！未刮到的依序排在後面
+  list.sort((a, b) => {
+    const ga = ST.got[a.t] ? 1 : 0;
+    const gb = ST.got[b.t] ? 1 : 0;
+    if (ga !== gb) return gb - ga;
+    return 0;
+  });
+  
+  // 分頁計算
+  const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
+  
+  if($("colPageInfo")) {
+     $("colPageInfo").textContent = `第 ${currentPage} / ${totalPages} 頁 (共 ${list.length} 項)`;
+     $("btnPrevPage").disabled = currentPage === 1;
+     $("btnNextPage").disabled = currentPage === totalPages;
+  }
+  
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageList = list.slice(start, start + PAGE_SIZE);
+  
+  if (pageList.length === 0) {
+      g.innerHTML = `<div style="grid-column: 1 / -1; color: var(--muted); padding: 20px;">找不到符合的獎品喔 🥺</div>`;
+      return;
+  }
+
+  pageList.forEach(p => {
+    const rec = ST.got[p.t], T = TIER[p.r]||TIER.N, it = document.createElement("div");
+    it.className = "it" + (rec?"":" lock"); it.style.setProperty("--c",T.c);
+    if(rec){ const rest = rec.n-(rec.u||0);
+      it.innerHTML = `<div class="e"></div><b></b><small>${T.n} ・ 持有 ${rest} 張</small>`;
+      it.children[0].textContent = p.e; it.children[1].textContent = p.t;
+      const b = document.createElement("button");
+      b.textContent = rest>0 ? "兌換" : "已用完 (查看)";
+      b.onclick = () => openVoucher(p, rec);
+      it.appendChild(b);
+    } else it.innerHTML = `<div class="e">❓</div><b>???</b><small>${T.n}</small>`;
+    g.appendChild(it);
+  });
+}
+
+// 綁定搜尋與分頁按鈕事件
+document.addEventListener("DOMContentLoaded", () => {
+    
+    if($("colSearch")) $("colSearch").addEventListener("input", () => { 
+        const kw = $("colSearch").value.trim();
+        // 隱藏彩蛋一
+        if(kw === "我愛定宇" || kw === "520") {
+            confetti({k: 100}); // 玫瑰花瓣雨 (借用煙火特效，數量調多)
+            $("colSearch").value = ""; // 清空
+            toast("🌹 解鎖隱藏彩蛋！獲得終極神券！");
+            
+            // 給予隱藏獎品
+            const specialPrize = {e:"💍", t:"終極隱藏：無條件答應任何事券", n:"小寶說什麼就是什麼，本寶絕對服從！", r:"L", w:0};
+            const g = ST.got[specialPrize.t] || (ST.got[specialPrize.t] = {n:0,u:0}); g.n++; save();
+            setTimeout(()=> { share(specialPrize); colGrid(); }, 1500);
+            return;
+        }
+        currentPage = 1; colGrid(); 
+    });
+
+    if($("colFilter")) $("colFilter").addEventListener("change", () => { currentPage = 1; colGrid(); });
+    if($("btnPrevPage")) $("btnPrevPage").addEventListener("click", () => { currentPage--; colGrid(); });
+    if($("btnNextPage")) $("btnNextPage").addEventListener("click", () => { currentPage++; colGrid(); });
+});
+$("colBtn").onclick = () => { $("col").hidden = !$("col").hidden; if(!$("col").hidden){ colGrid(); $("col").scrollIntoView({behavior:"smooth"}); } };
+
+/* ---------- 刮刮卡 ---------- */
+const cv = $("cv"), ctx = cv.getContext("2d"), wrap = $("wrap"), nextBtn = $("next"), info = $("info");
+let drawing = false, revealed = false, last = null, moves = 0, cur = null, count = 0, lastNoise = 0;
+function pick(){
+  if(cfg.anniversary && Math.abs(Math.round((day0(cfg.anniversary)-todayD())/864e5))<=1 && !ST.sp[cfg.anniversary]) return specialObj();
+  if(cfg.letter && Math.random()<.04) return letterObj();
+  let pool = (cfg.prizes || []).filter(p=>p && p.t && Number(p.w)>0);
+  if(!pool.length) pool = (typeof DEFAULT_CONFIG !== "undefined" && DEFAULT_CONFIG.scratchcard && DEFAULT_CONFIG.scratchcard.prizes) || [];
+  
+  // 過濾掉所有已經抽過的獎品，保證完全不重複
+  const fresh = pool.filter(p => !ST.got || !ST.got[p.t] || ST.got[p.t].n === 0);
+  if(fresh.length > 0) pool = fresh;
+  
+  if(ST.miss>=4){ const hi = pool.filter(p=>p.r!=="N"); if(hi.length) pool = hi; }
+  const totalW = pool.reduce((s,p)=>s+(Number(p.w)||1),0);
+  let r = Math.random() * totalW;
+  for(const p of pool){
+    r -= (Number(p.w) || 1);
+    if(r <= 0) return p;
+  }
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+function paint(){
+  const r = wrap.getBoundingClientRect(), d = window.devicePixelRatio||1;
+  cv.width = r.width*d; cv.height = r.height*d; ctx.setTransform(d,0,0,d,0,0); ctx.globalCompositeOperation = "source-over";
+  const g = ctx.createLinearGradient(0,0,r.width,r.height);
+  g.addColorStop(0,"#c3c7d0"); g.addColorStop(.35,"#f4f5f8"); g.addColorStop(.6,"#c9ccd5"); g.addColorStop(1,"#eceef2");
+  ctx.fillStyle = g; ctx.fillRect(0,0,r.width,r.height);
+  ctx.fillStyle = "rgba(255,255,255,.55)";
+  for(let i=0;i<70;i++){ ctx.fillRect(Math.random()*r.width,Math.random()*r.height,2,2); }
+  ctx.fillStyle = "rgba(120,125,140,.6)"; ctx.font = "700 20px system-ui,sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText("✨ 刮一刮 ✨", r.width/2, r.height/2-8);
+  ctx.font = "13px system-ui,sans-serif"; ctx.fillText("今天會抽到什麼呢?", r.width/2, r.height/2+18);
+}
+function newCard(){
+  wrap.classList.remove("win"); revealed = false; moves = 0;
+  if($("autoSc")) $("autoSc").style.display = "none";
+  cv.style.transition = "none"; cv.classList.remove("done"); paint(); void cv.offsetWidth; cv.style.transition = "";
+  if(left()<=0){
+    $("bd").textContent = "休息中"; wrap.style.setProperty("--tc","#9b6b7d");
+    $("pe").textContent = "🌙"; $("pt").textContent = "今天的刮刮樂用完囉"; $("pn").textContent = "明天再來，會有新的驚喜";
+    cv.classList.add("done"); nextBtn.disabled = true; info.textContent = "好好休息，明天見 💤"; chips(); return;
+  }
+
+  // 待抽卡防死結檢查：若當前待抽卡已經在收藏庫中（已刮出過），必須立即解除鎖定並抽全新獎品
+  let pendingDef = null;
+  if(ST.pending){
+    const d = findDef(ST.pending);
+    if(d && (!ST.got || !ST.got[d.t] || ST.got[d.t].n === 0)){
+      pendingDef = d;
+    } else {
+      ST.pending = null; // 已刮過或無效卡，清除 pending 死結
+    }
+  }
+
+  cur = pendingDef || pick();
+  ST.pending = cur ? cur.t : null;
+  save(); // 鎖定當前刮刮卡
+
+  const T = TIER[cur.r]||TIER.N;
+  wrap.style.setProperty("--tc",T.c); $("bd").textContent = T.n;
+  $("pe").textContent = cur.e||"🎁"; $("pt").textContent = cur.t; $("pn").textContent = (cur.n||"") + (cfg.fromName?` — ${cfg.fromName}`:"");
+  nextBtn.disabled = true; info.textContent = count ? `這次已刮 ${count} 張` : "用手指刮開看看 👆（或按『直接刮開』）"; chips();
+}
+const pos = e => { const r = cv.getBoundingClientRect(); return {x:e.clientX-r.left,y:e.clientY-r.top}; };
+function spark(p){
+  const s = document.createElement("span"); s.className = "sp"; s.textContent = ["✨","💖","⭐","✦"][Math.random()*4|0];
+  s.style.left = p.x+"px"; s.style.top = p.y+"px"; s.style.setProperty("--dx",(Math.random()*50-25)+"px"); s.style.setProperty("--dy",(Math.random()*-50-10)+"px");
+  wrap.appendChild(s); setTimeout(()=>s.remove(),750);
+}
+function scratch(e){
+  if(!drawing||revealed) return; const p = pos(e);
+  ctx.globalCompositeOperation = "destination-out"; ctx.lineWidth = 36; ctx.lineCap = ctx.lineJoin = "round";
+  ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(p.x,p.y); ctx.stroke(); last = p;
+  if(moves%3===0) spark(p);
+  const now = performance.now(); if(now-lastNoise>70){ lastNoise = now; beep(180+Math.random()*220,0,.05,"sawtooth",.015); }
+  if(++moves%5===0) check(false);
+}
+function check(isPointerUp){
+  if(revealed) return;
+  const d = ctx.getImageData(0,0,cv.width,cv.height).data; let c = 0, t = 0;
+  for(let i=3;i<d.length;i+=64){ t++; if(d[i]<128) c++; }
+  const ratio = c / t;
+  if(ratio >= REVEAL_AT || (isPointerUp && ratio >= 0.28)){
+    reveal();
+  } else if(ratio > 0.04) {
+    if($("autoSc")) $("autoSc").style.display = "inline-block";
+  }
+}
+function reveal(){
+  if(revealed) return;
+  revealed = true; drawing = false; count++; cv.classList.add("done"); wrap.classList.add("win");
+  if($("autoSc")) $("autoSc").style.display = "none";
+  
+  ST.pending = null; ST.days[tk()] = (ST.days[tk()]||0)+1;
+  const g = ST.got[cur.t] || (ST.got[cur.t] = {n:0,u:0}); g.n++;
+  ST.recent = (ST.recent||[]).concat(cur.t).slice(-9);
+  if(cur.special && cfg.anniversary) ST.sp[cfg.anniversary] = 1;
+  ST.miss = (cur.r==="N" && !cur.letter && !cur.special) ? ST.miss+1 : 0;
+  
+  // 原子級儲存：刮中即刻寫入本機雙存檔與雲端保證佇列
+  save(); checkAch();
+
+  const T = TIER[cur.r]||TIER.N; chime(cur.r||"N"); confetti(T);
+  if(cur.letter||cur.special||cur.img) setTimeout(()=>showModal(cur),1100);
+  info.textContent = `🎉 恭喜抽到【${T.n}】獎品！已存入收藏冊 💖` + (left()===0?"（今天的卡用完囉）":""); nextBtn.disabled = left()<=0; chips();
+  if(!$("col").hidden) colGrid();
+}
+function confetti(T){
+  const em = ["💖","✨","🎉","🌸","⭐","💕","🎀"];
+  for(let i=0;i<T.k;i++){
+    const s = document.createElement("span"); s.className = "fx"; s.textContent = em[i%em.length];
+    s.style.left = Math.random()*100+"vw"; s.style.fontSize = (1+Math.random()*1.2)+"rem"; s.style.animationDelay = Math.random()*.7+"s";
+    document.body.appendChild(s); setTimeout(()=>s.remove(),3600);
+  }
+}
+cv.addEventListener("pointerdown",e=>{ if(revealed) return; if(!AC){ try{ AC = new (window.AudioContext||window.webkitAudioContext)(); }catch(_){} } drawing = true; last = pos(e); cv.setPointerCapture(e.pointerId); scratch(e); });
+cv.addEventListener("pointermove",scratch);
+let lastPointerUp = 0;
+["pointerup","pointercancel"].forEach(t=>cv.addEventListener(t,()=>{
+  if(drawing&&!revealed) check(true);
+  drawing = false;
+  const now = Date.now();
+  if(now - lastPointerUp < 350 && moves > 0 && !revealed){
+    reveal(); // 雙擊快速刮開
+  }
+  lastPointerUp = now;
+}));
+if($("autoSc")) {
+  $("autoSc").onclick = () => {
+    if(revealed || left() <= 0) return;
+    reveal();
+  };
+}
+nextBtn.onclick = newCard;
+window.addEventListener("resize",()=>{ if(!revealed&&moves===0&&left()>0) paint(); });
+
+
+/* ---------- 隱藏彩蛋三：11:11 的「時空魔法」 ---------- */
+setInterval(()=>{
+  if(document.hidden) return;
+  const now = new Date();
+  if((now.getHours() === 11 || now.getHours() === 23) && now.getMinutes() === 11) {
+      if(!document.body.classList.contains('magic-time')) {
+          document.body.classList.add('magic-time');
+          document.documentElement.dataset.theme = 'night'; // 切換成星空模式
+          toast("✨ 現在是 11:11，本寶正在軍中偷偷想妳喔 💖");
+      }
+  } else {
+      if(document.body.classList.contains('magic-time')) {
+          document.body.classList.remove('magic-time');
+          applyTheme(); // 恢復原本佈景
+      }
+  }
+}, 30000);
+
+/* ---------- 背景飄浮愛心 ---------- */
+setInterval(()=>{
+  if(document.hidden) return; const h = document.createElement("span"); h.className = "heart";
+  h.textContent = ["💗","💕","🌸","✨","💖"][Math.random()*5|0]; h.style.left = Math.random()*100+"vw";
+  h.style.fontSize = (14+Math.random()*18)+"px"; h.style.animationDuration = (8+Math.random()*7)+"s";
+  document.body.appendChild(h); setTimeout(()=>h.remove(),16000);
+},900);
+
+
+/* ---------- 新功能 ---------- */
+let loginMsg = "", wAng = 0, spinning = false, tt = 0;
+const letterObj = () => ({e:"💌",t:"情書卡",n:"有一封信要給妳,點開來看 💌",r:"E",letter:true});
+const specialObj = () => ({e:"🎂",t:"紀念日特別卡",n:"今天是我們的日子 💖",r:"L",special:true});
+const wlist = () => (cfg.wheel||[]).map(w=>Object.assign({r:"W"},w));
+const allList = () => cfg.prizes.concat(wlist());
+const findDef = t => allList().concat([letterObj(),specialObj()]).find(p=>p.t===t);
+function toast(m){ const e = $("toast"); e.textContent = m; e.classList.add("show"); clearTimeout(tt); tt = setTimeout(()=>e.classList.remove("show"),3200); }
+function share(p){
+  const text = `我要兌換:${p.e} ${p.t} 🎟️`;
+  if(navigator.share) navigator.share({text}).catch(()=>{});
+  else { try{ navigator.clipboard.writeText(text); toast("已複製兌換訊息,貼給他吧 📋"); }catch(_){ toast(text); } }
+}
+function showModal(p){
+  const txt = p.letter ? cfg.letter : p.special ? cfg.anniversaryNote : (p.n||""), img = p.img || ((p.letter||p.special)&&cfg.photo) || "", im = $("mdI");
+  $("mdE").textContent = p.e; $("mdT").textContent = p.t; $("mdN").textContent = txt;
+  im.hidden = !img; if(img){ im.src = img; im.onerror = () => im.hidden = true; } $("md").hidden = false;
+}
+$("mdX").onclick = () => $("md").hidden = true;
+
+/* 心動漂浮特效 */
+function spawnHearts(x, y, count = 8){
+  const emojis = ["💖","💕","🌸","✨","🥰","💌","🧸"];
+  for(let i = 0; i < count; i++){
+    const el = document.createElement("div");
+    el.className = "floating-heart";
+    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    const ox = (Math.random() - 0.5) * 80;
+    const oy = (Math.random() - 0.5) * 50;
+    el.style.left = `${Math.max(20, Math.min(window.innerWidth - 30, (x || window.innerWidth/2) + ox))}px`;
+    el.style.top = `${Math.max(20, Math.min(window.innerHeight - 30, (y || window.innerHeight/2) + oy))}px`;
+    el.style.animationDelay = `${i * 0.07}s`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1200);
+  }
+}
+
+/* 想你按鈕功能 */
+function triggerMissYou(e){
+  ST.missYou = (ST.missYou || 0) + 1;
+  if($("missCount")) $("missCount").textContent = ST.missYou;
+  
+  if(!AC){ try{ AC = new (window.AudioContext||window.webkitAudioContext)(); }catch(_){} }
+  beep(659, 0, 0.12, "sine", 0.08);
+  beep(880, 0.1, 0.22, "sine", 0.09);
+  beep(1046, 0.22, 0.35, "sine", 0.1);
+  
+  const rect = (e && e.currentTarget) ? e.currentTarget.getBoundingClientRect() : { left: window.innerWidth - 60, top: window.innerHeight - 60 };
+  spawnHearts(rect.left + 30, rect.top + 10, 8);
+  
+  const quotes = [
+    "定宇在想小寶了！好想抱抱妳～🥰",
+    "叮咚！已向定宇發送 100 萬顆愛心！💖",
+    "收到小寶的想念訊號！今天也是超級愛妳的一天～✨",
+    "心電感應中... 定宇正在想著可愛的小寶 💌",
+    "想念指數 +1！不管相隔多遠，心永遠在一起喔～🌸",
+    "傳送一個隔空親親給寶鼻 💋",
+    "想妳想妳想妳！最喜歡我們家小寶了 🥺",
+    "定宇正在看著妳的照片偷偷笑呢 📸"
+  ];
+  const q = quotes[Math.floor(Math.random() * quotes.length)];
+  toast(q);
+  save();
+  checkAch();
+}
+if($("missBtn")) $("missBtn").onclick = triggerMissYou;
+
+/* 實體約定憑證兌換系統 (Voucher Redemption) */
+let activeVoucher = null;
+function openVoucher(p, rec){
+  activeVoucher = { p, rec };
+  const T = TIER[p.r] || TIER.N;
+  const rest = Math.max(0, (rec.n || 0) - (rec.u || 0));
+  
+  $("vBadge").textContent = `${T.n}級獎品`;
+  $("vBadge").style.background = T.c;
+  $("vTitle").textContent = `${p.e} ${p.t}`;
+  $("vDesc").textContent = p.n || "小寶專屬承諾，憑此券可向定宇隨時兌換！願賭服輸，不得反悔喔～💖";
+  $("vRest").textContent = `剩餘持有：${rest} 張 (已使用 ${rec.u || 0} 張)`;
+  
+  const stamp = $("vStamp");
+  const btn = $("vRedeemBtn");
+  if(rest > 0){
+    stamp.classList.remove("stamped");
+    btn.disabled = false;
+    btn.textContent = "💮 立即蓋章兌換";
+  } else {
+    stamp.classList.add("stamped");
+    btn.disabled = true;
+    btn.textContent = "已全部兌換完畢";
+  }
+  
+  const modal = $("voucherModal");
+  modal.hidden = false;
+  requestAnimationFrame(() => modal.classList.add("show"));
+}
+
+function redeemActiveVoucher(){
+  if(!activeVoucher) return;
+  const { p, rec } = activeVoucher;
+  const rest = Math.max(0, (rec.n || 0) - (rec.u || 0));
+  if(rest <= 0) return;
+  
+  rec.u = (rec.u || 0) + 1;
+  const stamp = $("vStamp");
+  stamp.classList.add("stamped");
+  
+  if(!AC){ try{ AC = new (window.AudioContext||window.webkitAudioContext)(); }catch(_){} }
+  beep(220, 0, 0.12, "triangle", 0.14);
+  beep(180, 0.08, 0.22, "sine", 0.18);
+  
+  const card = $("voucherCard");
+  const rect = card.getBoundingClientRect();
+  spawnHearts(rect.left + rect.width / 2, rect.top + rect.height / 2, 12);
+  
+  save();
+  colGrid();
+  checkAch();
+  
+  const newRest = Math.max(0, (rec.n || 0) - (rec.u || 0));
+  $("vRest").textContent = `剩餘持有：${newRest} 張 (已使用 ${rec.u || 0} 張)`;
+  
+  const btn = $("vRedeemBtn");
+  btn.disabled = true;
+  btn.textContent = "✅ 已成功兌換";
+  
+  const msg = `💌【小寶向定宇兌換約定憑證】\n✨ 獎項：${p.e} ${p.t}\n📜 承諾：${p.n || '說好不反悔喔！'}\n⏰ 兌換時間：${new Date().toLocaleString('zh-TW')}\n👉 定宇必須願賭服輸，立刻為小寶兌現承諾！😘💕`;
+  if(navigator.share){
+    navigator.share({ text: msg }).catch(() => {});
+  } else {
+    try {
+      navigator.clipboard.writeText(msg);
+      toast("💮 兌換成功！已複製甜蜜約定訊息，快去 LINE 傳給定宇吧 💌");
+    } catch(_) {
+      toast("💮 兌換成功！截圖傳給定宇兌現吧 💌");
+    }
+  }
+}
+
+function closeVoucher(){
+  const modal = $("voucherModal");
+  modal.classList.remove("show");
+  setTimeout(() => modal.hidden = true, 300);
+}
+if($("vRedeemBtn")) $("vRedeemBtn").onclick = redeemActiveVoucher;
+if($("vCloseBtn")) $("vCloseBtn").onclick = closeVoucher;
+if($("voucherModal")) $("voucherModal").onclick = (e) => {
+  if(e.target === $("voucherModal")) closeVoucher();
+};
+
+/* ---------- PWA 手機桌面 App 安裝引導邏輯 ---------- */
+let deferredPrompt = null;
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (!isStandalone()) showPwaBanner();
+});
+
+function isStandalone() {
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+
+function showPwaBanner() {
+  if (isStandalone()) return;
+  if (sessionStorage.getItem("pwaDismissed")) return;
+  const b = $("pwaBanner");
+  if (b) b.style.display = "flex";
+}
+
+function openPwaModal() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+    return;
+  }
+  const modal = $("pwaModal");
+  if (modal) {
+    modal.hidden = false;
+    requestAnimationFrame(() => modal.classList.add("show"));
+  }
+}
+
+function closePwaModal() {
+  const modal = $("pwaModal");
+  if (modal) {
+    modal.classList.remove("show");
+    setTimeout(() => modal.hidden = true, 300);
+  }
+}
+
+if ($("pwaInstallBtn")) $("pwaInstallBtn").onclick = openPwaModal;
+if ($("pwaNavBtn")) $("pwaNavBtn").onclick = (e) => { e.preventDefault(); openPwaModal(); };
+if ($("pwaModalClose")) $("pwaModalClose").onclick = closePwaModal;
+if ($("pwaModal")) $("pwaModal").onclick = (e) => { if (e.target === $("pwaModal")) closePwaModal(); };
+if ($("pwaBannerClose")) $("pwaBannerClose").onclick = () => {
+  const b = $("pwaBanner");
+  if (b) b.style.display = "none";
+  sessionStorage.setItem("pwaDismissed", "1");
+};
+setTimeout(() => { if (!isStandalone()) showPwaBanner(); }, 800);
+
+const ACH = [
+  ["first","🌱","初次刮卡",()=>Object.keys(ST.got).length>0],
+  ["leg","👑","傳說降臨",()=>cfg.prizes.some(p=>p.r==="L"&&ST.got[p.t])],
+  ["allN","🧸","集滿普通獎",()=>cfg.prizes.filter(p=>p.r==="N").every(p=>ST.got[p.t])],
+  ["all","🏆","全圖鑑",()=>allList().every(p=>ST.got[p.t])],
+  ["s7","🔥","連續 7 天",()=>ST.streak.n>=7],
+  ["spin","🎡","轉盤達人",()=>ST.spins>=5],
+  ["let","💌","收到情書",()=>!!ST.got["情書卡"]],
+  ["miss10","💖","想念傳遞者",()=>(ST.missYou||0)>=10],
+  ["use1","🎟️","甜蜜承諾兌現",()=>Object.values(ST.got||{}).some(v=>v.u>0)]
+];
+function checkAch(){ ACH.forEach(([id,e,n,f])=>{ if(!ST.ach[id] && f()){ ST.ach[id] = 1; save(); toast(`🏅 解鎖成就:${e} ${n}`); } }); }
+function renderAch(){ $("ach").innerHTML = ACH.map(([id,e,n])=>`<span class="bdg${ST.ach[id]?"":" off"}">${e} ${n}</span>`).join(""); }
+function login(){
+  const t = tk(), y = new Date(Date.now()-864e5).toLocaleDateString("sv");
+  if(ST.streak.d !== t){
+    ST.streak.n = ST.streak.d===y ? ST.streak.n+1 : 1; ST.streak.d = t;
+    if(ST.streak.n===3 || ST.streak.n%7===0){ ST.bonus = {d:t,n:(ST.bonus.d===t?ST.bonus.n:0)+1}; loginMsg = `🔥 連續 ${ST.streak.n} 天!今天多送 1 張`; }
+    save();
+  }
+}
+const THEMES = ["","night","peach","mint"];
+const applyTheme = () => { document.documentElement.dataset.theme = THEMES[ST.theme||0]; };
+$("thBtn").onclick = () => { ST.theme = ((ST.theme||0)+1)%THEMES.length; save(); applyTheme(); };
+
+const WCOL = ["#ffd1dc","#ffe9a8","#cde7ff","#d9f5d0","#e6d4ff","#ffd9b8"];
+const wheelLeft = () => Math.max(0,(cfg.wheelLimit||1)-(ST.wheel[tk()]||0));
+function drawWheel(){
+  const x = $("wc").getContext("2d"), L = wlist(), n = L.length||1, g = 2*Math.PI/n; x.clearRect(0,0,300,300);
+  L.forEach((w,i)=>{
+    x.beginPath(); x.moveTo(150,150); x.arc(150,150,146,-Math.PI/2+i*g,-Math.PI/2+(i+1)*g); x.closePath();
+    x.fillStyle = WCOL[i%WCOL.length]; x.fill(); x.strokeStyle = "#fff"; x.lineWidth = 3; x.stroke();
+    x.save(); x.translate(150,150); x.rotate(-Math.PI/2+(i+.5)*g); x.font = "30px serif"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(w.e,100,0); x.restore();
+  });
+}
+function wheelUI(){ $("wl").textContent = `今日可轉 ${wheelLeft()} 次`; $("spin").disabled = spinning || wheelLeft()<=0; }
+$("whBtn").onclick = () => { $("wh").hidden = !$("wh").hidden; if(!$("wh").hidden){ drawWheel(); wheelUI(); $("wh").scrollIntoView({behavior:"smooth"}); } };
+$("spin").onclick = () => {
+  const L = wlist(); if(spinning || wheelLeft()<=0 || !L.length) return;
+  if(!AC){ try{ AC = new (window.AudioContext||window.webkitAudioContext)(); }catch(_){} }
+  let r = Math.random()*L.reduce((s,w)=>s+Number(w.w||1),0), idx = L.length-1;
+  for(let i=0;i<L.length;i++){ r -= Number(L[i].w||1); if(r<=0){ idx = i; break; } }
+  const seg = 360/L.length, center = (idx+.5)*seg + (Math.random()-.5)*seg*.6;
+  spinning = true; $("wres").textContent = "轉轉轉…"; wheelUI();
+  wAng = Math.floor(wAng/360)*360 + 360*5 + (360-center); $("wc").style.transform = `rotate(${wAng}deg)`;
+  for(let i=0;i<14;i++) beep(900-i*30,i*.25,.05,"square",.03);
+  setTimeout(()=>{ spinning = false; award(L[idx]); },4300);
+};
+function award(w){
+  const g = ST.got[w.t] || (ST.got[w.t] = {n:0,u:0}); g.n++;
+  if(w.bonus){ ST.bonus = {d:tk(),n:(ST.bonus.d===tk()?ST.bonus.n:0)+w.bonus}; }
+  ST.wheel[tk()] = (ST.wheel[tk()]||0)+1; ST.spins++; save();
+  $("wres").textContent = `${w.e} 轉到:${w.t}` + (w.bonus?"(今天多一張刮刮卡!)":""); chime("R"); confetti(TIER.W);
+  wheelUI(); chips(); checkAch(); if(!$("col").hidden) colGrid(); if(w.bonus && left()>0 && cv.classList.contains("done")) nextBtn.disabled = false;
+}
+
+/* ---------- 啟動:先確認登入、讀完雲端設定與存檔,才開始遊戲 ---------- */
+function applySite(site){
+  cfg = Object.assign(JSON.parse(JSON.stringify(DEFAULT)), site.scratchcard || {});
+  if(!Array.isArray(cfg.prizes) || !cfg.prizes.length) cfg.prizes = DEFAULT.prizes;
+  if(site.dates){ if(site.dates.start) cfg.startDate = site.dates.start; if(site.dates.anniversary) cfg.anniversary = site.dates.anniversary; }
+}
+/* 定宇在後台送的額外刮刮卡:coupleData/bonus.total 比我已領的多,就把差額加到今天的張數 */
+function watchGrant(user){
+  if(isAdminUser(user)) return;
+  db.collection("coupleData").doc("bonus").onSnapshot(snap => {
+    if(!snap.exists) return;
+    const total = Number(snap.data().total||0), add = total - Number(ST.grantSeen||0);
+    if(add <= 0) return;
+    ST.bonus = {d:tk(), n:(ST.bonus.d===tk()?ST.bonus.n:0)+add};
+    ST.grantSeen = total; save(); chips();
+    if(!revealed && moves===0) newCard(); else if(revealed) nextBtn.disabled = left()<=0;
+    toast(`🎁 定宇送你 ${add} 張額外刮刮卡!`);
+  }, e => console.warn("讀取額外刮刮卡失敗", e));
+}
+/* 默契問答獎勵:每答對 quizEvery 題,送 1 張今天可刮的卡 */
+function watchQuizReward(user, site){
+  if(isAdminUser(user)) return;
+  const bank = parseQuiz(site.quiz), every = Number(site.quizEvery)||3;
+  let picks = {}, ans = {};
+  const check = () => {
+    let ok = 0;
+    Object.keys(picks).forEach(i => { const it = bank[i]; if(!it) return; const a = ans[i] !== undefined ? Number(ans[i]) : it.a; if(a != null && Number(picks[i]) === a) ok++; });
+    const earned = Math.floor(ok / every), add = earned - Number(ST.quizGiven||0);
+    if(add <= 0) return;
+    ST.bonus = {d:tk(), n:(ST.bonus.d===tk()?ST.bonus.n:0)+add};
+    ST.quizGiven = earned; save(); chips();
+    if(!revealed && moves===0) newCard(); else if(revealed) nextBtn.disabled = left()<=0;
+    toast(`🧠 默契問答答對 ${earned*every} 題,送你 ${add} 張刮刮卡!`);
+  };
+  db.collection("userData").doc(user.uid).onSnapshot(s => { picks = (s.exists && s.data().quiz) || {}; check(); }, () => {});
+  db.collection("coupleData").doc("quiz").onSnapshot(s => { ans = (s.exists && s.data().answers) || {}; check(); }, () => {});
+}
+// -- 本地優先秒開 (Local-First) --
+reloadST(); applyTheme(); applyText(); newCard(); checkAch();
+
+(async () => {
+  const user = await authReady; if(!user) return;
+  
+  // 在背景同步雲端，不卡住畫面
+  Promise.all([loadSiteConfig(), cloudSync.pull()]).then(([site]) => {
+      applySite(site);
+      reloadST();
+      login(); applyTheme(); applyText(); checkAch();
+      if(!revealed && moves===0) newCard(); else if(revealed) nextBtn.disabled = left()<=0;
+      if(loginMsg) setTimeout(()=>toast(loginMsg),600);
+      save();
+      watchGrant(user); watchQuizReward(user, site);
+  });
+
+  /* 別台裝置存檔後,這台自動更新(正在刮的卡不打斷) */
+  cloudSync.listen((merged) => {
+    reloadST(merged); applyTheme(); chips(); checkAch();
+    if(!revealed && moves===0) newCard(); else if(revealed) nextBtn.disabled = left()<=0;
+    if(!$("col").hidden) colGrid();
+    if(!$("wh").hidden) wheelUI();
+    toast("☁️ 已同步最新進度");
+  });
+})();
+
+</script>
+</body>
+</html>
