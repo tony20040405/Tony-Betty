@@ -11,7 +11,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💖</text></svg>">
 <link rel="manifest" href="manifest.json">
 <title>寶鼻專屬刮刮樂 💖</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=20261105_v4">
 <style>
 :root{--b1:#ffe3ec;--b2:#ffd0e4;--b3:#e6dcff;--fg:#4a2230;--card:#fff;--muted:#9b6b7d;--accent:#e8557a;--line:#f5cbd8;--tc:#e8557a}
 @media (prefers-color-scheme:dark){:root{--b1:#1d1217;--b2:#2a1424;--b3:#1c1631;--fg:#fbe4ea;--card:#2b1b22;--muted:#b88c9a;--accent:#ff7a9c;--line:#4a2f3a}}
@@ -81,8 +81,8 @@ nav a.active { background: var(--accent); color: #fff; }
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
-<script src="site-config.js"></script>
-<script src="firebase-init.js"></script>
+<script src="site-config.js?v=20261105_v4"></script>
+<script src="firebase-init.js?v=20261105_v4"></script>
 </head>
 <body>
 <nav>
@@ -227,22 +227,28 @@ function getInitialConfig(){
         wheelLimit: 1,
         prizes: []
       };
-  try {
-    const cached = JSON.parse(localStorage.getItem('siteConfigCache') || 'null');
-    if (cached && cached.scratchcard) {
-      if (isLegacyPrizes(cached.scratchcard.prizes)) { delete cached.scratchcard.prizes; }
-      Object.assign(base, cached.scratchcard);
-      if (!Array.isArray(base.prizes) || !base.prizes.length) {
-        base.prizes = (typeof DEFAULT_CONFIG !== "undefined" && DEFAULT_CONFIG.scratchcard && DEFAULT_CONFIG.scratchcard.prizes) || [];
-      }
-    }
-    if (cached && cached.dates) {
-      if (cached.dates.start) base.startDate = cached.dates.start;
-      if (cached.dates.anniversary) base.anniversary = cached.dates.anniversary;
-    }
-  } catch(_) {}
+  // 獎品庫強制鎖定最新的 DEFAULT_CONFIG.scratchcard.prizes (800 張同居全新卡庫)
+  if (typeof DEFAULT_CONFIG !== "undefined" && DEFAULT_CONFIG.scratchcard && Array.isArray(DEFAULT_CONFIG.scratchcard.prizes)) {
+    base.prizes = DEFAULT_CONFIG.scratchcard.prizes;
+  }
   return base;
 }
+
+
+// 卡庫版本強制同步檢查
+(function checkPoolVersion(){
+  const CURRENT_VER = (typeof DEFAULT_CONFIG !== "undefined" && DEFAULT_CONFIG.version) || "20261105_v4";
+  if (localStorage.getItem("active_pool_version") !== CURRENT_VER) {
+    try {
+      localStorage.removeItem("siteConfigCache");
+      localStorage.setItem("active_pool_version", CURRENT_VER);
+    } catch(_) {}
+    try {
+      const s = JSON.parse(localStorage.getItem("sc2") || "null");
+      if (s && s.pending) { s.pending = null; localStorage.setItem("sc2", JSON.stringify(s)); }
+    } catch(_) {}
+  }
+})();
 
 const DEFAULT = getInitialConfig();
 const TIER = {W:{n:"轉盤",c:"#ff5fa2",k:24,s:[784,988]}, N:{n:"普通",c:"#6f93b8",k:18,s:[660,880]}, R:{n:"稀有",c:"#2f8cff",k:30,s:[523,659,784]}, E:{n:"史詩",c:"#a24dff",k:46,s:[523,659,784,1047]}, L:{n:"傳說",c:"#ff9d00",k:80,s:[523,659,784,1047,1319,1568]}};
@@ -427,7 +433,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if($("colFilter")) $("colFilter").addEventListener("change", () => { currentPage = 1; colGrid(); });
     if($("btnPrevPage")) $("btnPrevPage").addEventListener("click", () => { currentPage--; colGrid(); });
-    if($("btnNextPage")) $("btnNextPage").addEventListener("click", () => { currentPage++; colGrid(); });
+    
+  if($("btnForceRefreshCache")) {
+    $("btnForceRefreshCache").onclick = () => {
+      try {
+        localStorage.removeItem("siteConfigCache");
+        localStorage.removeItem("active_pool_version");
+        if(ST) { ST.pending = null; save(); }
+      } catch(_) {}
+      toast("✨ 正在重新載入最新 800 張同居卡庫...");
+      setTimeout(() => location.reload(true), 500);
+    };
+  }
+
+  if($("btnNextPage")) $("btnNextPage").addEventListener("click", () => { currentPage++; colGrid(); });
 });
 $("colBtn").onclick = () => { $("col").hidden = !$("col").hidden; if(!$("col").hidden){ colGrid(); $("col").scrollIntoView({behavior:"smooth"}); } };
 
@@ -498,14 +517,14 @@ function newCard(){
     cv.classList.add("done"); nextBtn.disabled = true; info.textContent = "好好休息，明天見 💤"; chips(); return;
   }
 
-  // 待抽卡防死結檢查：若當前待抽卡已經在收藏庫中（已刮出過），必須立即解除鎖定並抽全新獎品
+  // 待抽卡防死結檢查：若待抽卡是舊版廢棄卡（不在全新 800 張卡庫中），或已經刮出過，立即徹底清除並重抽全新卡！
   let pendingDef = null;
   if(ST.pending){
-    const d = findDef(ST.pending);
+    const d = (cfg.prizes || []).find(p => p.t === ST.pending);
     if(d && (!ST.got || !ST.got[d.t] || ST.got[d.t].n === 0)){
       pendingDef = d;
     } else {
-      ST.pending = null; // 已刮過或無效卡，清除 pending 死結
+      ST.pending = null; // 舊版卡片、過期卡或已抽過的卡片，立刻清除！
     }
   }
 
@@ -890,9 +909,9 @@ function award(w){
 /* ---------- 啟動:先確認登入、讀完雲端設定與存檔,才開始遊戲 ---------- */
 function applySite(site){
   const sc = site.scratchcard ? JSON.parse(JSON.stringify(site.scratchcard)) : {};
-  if (isLegacyPrizes(sc.prizes)) { delete sc.prizes; }
   cfg = Object.assign(JSON.parse(JSON.stringify(DEFAULT)), sc);
-  if(!Array.isArray(cfg.prizes) || !cfg.prizes.length) cfg.prizes = DEFAULT.prizes;
+  // 獎品庫強制採用最新 800 張卡庫，杜絕雲端舊存檔或快取污染
+  cfg.prizes = (typeof DEFAULT_CONFIG !== "undefined" && DEFAULT_CONFIG.scratchcard && DEFAULT_CONFIG.scratchcard.prizes) || DEFAULT.prizes;
   if(site.dates){ if(site.dates.start) cfg.startDate = site.dates.start; if(site.dates.anniversary) cfg.anniversary = site.dates.anniversary; }
 }
 /* 本寶在後台送的額外刮刮卡:coupleData/bonus.total 比我已領的多,就把差額加到今天的張數 */
@@ -940,7 +959,17 @@ reloadST(); applyTheme(); applyText(); newCard(); checkAch();
       if(!revealed && moves===0) newCard(); else if(revealed) nextBtn.disabled = left()<=0;
       if(loginMsg) setTimeout(()=>toast(loginMsg),600);
       save();
-      watchGrant(user); watchQuizReward(user, site);
+      watchGrant(user);
+
+    // 管理員登入時，自動將最新的 800 張卡庫配置同步至雲端 Firestore，讓小寶手機也能自動取得最新設定
+    if (isAdminUser(user)) {
+      if (typeof DEFAULT_CONFIG !== "undefined") {
+        db.collection("coupleData").doc("config").set(DEFAULT_CONFIG, { merge: true })
+          .then(() => console.log("已自動同步最新 800 張同居卡庫至雲端！"))
+          .catch(e => console.warn("同步設定至雲端失敗:", e));
+      }
+    }
+ watchQuizReward(user, site);
   });
 
   /* 別台裝置存檔後,這台自動更新(正在刮的卡不打斷) */

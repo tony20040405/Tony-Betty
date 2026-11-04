@@ -1,5 +1,5 @@
 /* 寶鼻專屬空間 - PWA Service Worker (支援離線快取與加速) */
-const CACHE_NAME = 'tony-betty-pwa-v2';
+const CACHE_NAME = 'tony-betty-pwa-v4';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -35,12 +35,14 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   const url = event.request.url;
-  // Firebase Auth / Firestore API 必須直接走網路
   if (url.includes('firestore') || url.includes('googleapis') || url.includes('identitytoolkit') || event.request.method !== 'GET') {
     return;
   }
-
-  // 靜態資源優先走網路，斷網時由快取即時接手 (NetworkFirst)
+  // 關鍵配置與首頁永遠走最新網路
+  if (url.includes('site-config.js') || url.includes('firebase-init.js')) {
+    event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+    return;
+  }
   event.respondWith(
     fetch(event.request).then(response => {
       if (response && response.status === 200) {

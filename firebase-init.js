@@ -55,22 +55,32 @@ function isLegacyPrizes(arr){ if(!Array.isArray(arr) || !arr.length) return true
 async function _loadSiteConfig() {
   const base = (typeof DEFAULT_CONFIG !== 'undefined') ? JSON.parse(JSON.stringify(DEFAULT_CONFIG)) : {};
   
-  // 1. 嘗試從本機快取讀取，實現秒開
+  // 1. 嘗試從本機快取讀取基本設定（日期、輪盤等）
   try {
     const cached = JSON.parse(localStorage.getItem('siteConfigCache') || 'null');
-    if (cached && typeof cached === 'object') {
-      if (cached.scratchcard && isLegacyPrizes(cached.scratchcard.prizes)) { delete cached.scratchcard.prizes; }
+    if (cached && typeof cached === 'object' && cached.version === DEFAULT_CONFIG.version) {
       Object.keys(cached).forEach(k => {
-        const v = cached[k];
-        base[k] = (v && typeof v === 'object' && !Array.isArray(v)) ? Object.assign({}, base[k] || {}, v) : v;
+        if (k !== 'scratchcard') {
+          const v = cached[k];
+          base[k] = (v && typeof v === 'object' && !Array.isArray(v)) ? Object.assign({}, base[k] || {}, v) : v;
+        }
       });
     }
   } catch(e) {}
 
-  // 2. 在背景更新快取 (不阻塞畫面)
+  // 2. 獎品庫一律強制使用 DEFAULT_CONFIG.scratchcard.prizes (800 張同居全新卡庫)
+  if (DEFAULT_CONFIG && DEFAULT_CONFIG.scratchcard && Array.isArray(DEFAULT_CONFIG.scratchcard.prizes)) {
+    base.scratchcard = Object.assign({}, base.scratchcard || {}, DEFAULT_CONFIG.scratchcard);
+    base.scratchcard.prizes = DEFAULT_CONFIG.scratchcard.prizes;
+  }
+
+  // 3. 在背景向雲端檢查設定
   db.collection('coupleData').doc('config').get().then(doc => {
     if (doc.exists) {
-      try { localStorage.setItem('siteConfigCache', JSON.stringify(doc.data())); } catch(_) {}
+      const data = doc.data();
+      if (data && data.version === DEFAULT_CONFIG.version) {
+        try { localStorage.setItem('siteConfigCache', JSON.stringify(data)); } catch(_) {}
+      }
     }
   }).catch(e => console.warn('背景更新設定檔失敗', e));
 

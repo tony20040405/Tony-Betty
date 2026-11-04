@@ -1,5 +1,6 @@
 /* 網站預設內容。後台(admin.html)存到雲端的設定會覆蓋這裡的同名欄位。 */
 const DEFAULT_CONFIG = {
+  version: "2026.11.05-cohabitation-800-v4",
   names: { boy: "本寶", girl: "寶鼻" },
   dates: { start: "2025-11-11", anniversary: "2026-11-11", armyStart: "2027-01-01", armyEnd: "2027-02-28" },
   timeline: [
