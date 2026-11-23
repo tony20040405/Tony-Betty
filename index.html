@@ -11,7 +11,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💖</text></svg>">
 <link rel="manifest" href="manifest.json">
 <title>寶鼻專屬刮刮樂 💖</title>
-<link rel="stylesheet" href="style.css?v=20261105_v4">
+<link rel="stylesheet" href="style.css?v=20261123_v5">
 <style>
 :root{--b1:#ffe3ec;--b2:#ffd0e4;--b3:#e6dcff;--fg:#4a2230;--card:#fff;--muted:#9b6b7d;--accent:#e8557a;--line:#f5cbd8;--tc:#e8557a}
 @media (prefers-color-scheme:dark){:root{--b1:#1d1217;--b2:#2a1424;--b3:#1c1631;--fg:#fbe4ea;--card:#2b1b22;--muted:#b88c9a;--accent:#ff7a9c;--line:#4a2f3a}}
@@ -81,8 +81,8 @@ nav a.active { background: var(--accent); color: #fff; }
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
-<script src="site-config.js?v=20261105_v4"></script>
-<script src="firebase-init.js?v=20261105_v4"></script>
+<script src="site-config.js?v=20261123_v5"></script>
+<script src="firebase-init.js?v=20261123_v5"></script>
 </head>
 <body>
 <nav>
@@ -238,7 +238,7 @@ function getInitialConfig(){
 
 // 卡庫版本強制同步檢查
 (function checkPoolVersion(){
-  const CURRENT_VER = (typeof DEFAULT_CONFIG !== "undefined" && DEFAULT_CONFIG.version) || "20261105_v4";
+  const CURRENT_VER = (typeof DEFAULT_CONFIG !== "undefined" && DEFAULT_CONFIG.version) || "20261123_v5";
   if (localStorage.getItem("active_pool_version") !== CURRENT_VER) {
     try {
       localStorage.removeItem("siteConfigCache");

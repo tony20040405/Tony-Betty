@@ -10,12 +10,12 @@
 <link rel="manifest" href="manifest.json"><text y='.9em' font-size='90'>💖</text></svg>">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💖</text></svg>">
 <title>本寶的時光膠囊 💌</title>
-<link rel="stylesheet" href="style.css?v=20261105_v4">
+<link rel="stylesheet" href="style.css?v=20261123_v5">
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
-<script src="site-config.js?v=20261105_v4"></script>
-<script src="firebase-init.js?v=20261105_v4"></script>
+<script src="site-config.js?v=20261123_v5"></script>
+<script src="firebase-init.js?v=20261123_v5"></script>
 <style>
 .panel{text-align:center}
 .progress-container{width:100%;background:var(--line);border-radius:999px;height:18px;overflow:hidden;margin:12px 0}
@@ -91,15 +91,16 @@
   else                      { daysLeft = Math.ceil((endDate - now) / DAY); pct = (totalDays - daysLeft) / totalDays * 100;
                               $('top-sub').textContent = '即使本寶去當兵了,我的心也一直陪在寶鼻身邊 💖'; }
 
-  if (daysLeft > 0) {
-    $('count-text').innerHTML = '距離本寶退伍還有 <span style="color:var(--accent);font-size:1.5rem">' + daysLeft + '</span> 天!';
-    $('progress-text').textContent = '已經熬過 ' + pct.toFixed(1) + '% 囉,寶鼻再等我一下!';
+  if (now < startDate) {
+    const daysUntil = Math.ceil((startDate - now) / DAY);
+    $('count-text').innerHTML = '距離本寶入伍還有 <span style="color:var(--accent);font-size:1.5rem">' + daysUntil + '</span> 天';
+    $('progress-text').textContent = '出發前的每一天都要好好珍惜 💖';
   } else if (now >= endDate) {
     $('count-text').textContent = '🎉 本寶退伍啦!';
     $('progress-text').textContent = '100% 完成,謝謝寶鼻一路等我!';
   } else {
-    $('count-text').textContent = '距離入伍還有 ' + Math.ceil((startDate - now) / DAY) + ' 天';
-    $('progress-text').textContent = '還沒開始倒數,先好好相處吧!';
+    $('count-text').innerHTML = '距離本寶退伍還有 <span style="color:var(--accent);font-size:1.5rem">' + daysLeft + '</span> 天!';
+    $('progress-text').textContent = '已經熬過 ' + pct.toFixed(1) + '% 囉,寶鼻再等我一下!';
   }
   setTimeout(() => { $('progress-bar').style.width = pct + '%'; }, 300);
 

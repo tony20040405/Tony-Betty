@@ -1,5 +1,5 @@
 /* 寶鼻專屬空間 - PWA Service Worker (支援離線快取與加速) */
-const CACHE_NAME = 'tony-betty-pwa-v4';
+const CACHE_NAME = 'tony-betty-pwa-v5';
 const STATIC_ASSETS = [
   './',
   './index.html',
